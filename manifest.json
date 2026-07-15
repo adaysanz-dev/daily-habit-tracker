@@ -1,7 +1,7 @@
 {
-  "name": "Cadena — Hábitos diarios",
-  "short_name": "Cadena",
-  "description": "No rompas la cadena. Rastreador de hábitos diarios.",
+  "name": "Daily Habit Tracker",
+  "short_name": "Habit Tracker",
+  "description": "Daily Habit Tracker — build streaks, don't break the chain.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
