@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Daily Habit Tracker">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png?v=2">
+<link rel="icon" href="icons/icon-192.png?v=2">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -461,11 +461,16 @@ function uid(){ return Math.random().toString(36).slice(2,9); }
 function getLocalDateStr(date) { const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000); return d.toISOString().split('T')[0]; }
 function addDays(dateStr, n) { const d = new Date(dateStr + 'T00:00:00'); d.setDate(d.getDate() + n); return getLocalDateStr(d); }
 
+// ALMACENAMIENTO SEGURO (evita romper la app si localStorage está bloqueado, p.ej. en previews/iframes sandboxeados)
+function safeGetItem(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+function safeSetItem(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* almacenamiento no disponible */ } }
+function safeRemoveItem(key) { try { localStorage.removeItem(key); } catch (e) { /* almacenamiento no disponible */ } }
+
 // MIGRACIÓN Y ESTADO
 function defaultState() { return { habits: [] }; }
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = safeGetItem(STORAGE_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
     if (!Array.isArray(state.habits)) state.habits = [];
     
@@ -491,7 +496,7 @@ function loadState() {
   saveState(); render();
   setTimeout(maybeShowSwipeHint, 50);
 }
-function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { console.error(e); } }
+function saveState() { safeSetItem(STORAGE_KEY, JSON.stringify(state)); }
 function isHabitDone(habit, val) {
   if (val === 'done') return true;
   if (habit.type === 'numeric' && typeof val === 'number' && val >= habit.target) return true;
@@ -500,7 +505,7 @@ function isHabitDone(habit, val) {
 
 function updateThemeMetaColor(theme) { document.getElementById('meta-theme-color').setAttribute("content", theme === 'light' ? "#f4f6f4" : "#0f1a14"); }
 function initTheme() {
-  const savedTheme = localStorage.getItem(THEME_KEY);
+  const savedTheme = safeGetItem(THEME_KEY);
   const systemPrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
   const isLight = savedTheme === 'light' || (!savedTheme && systemPrefersLight);
   if (isLight) document.body.classList.add('light-theme');
@@ -509,7 +514,7 @@ function initTheme() {
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
   const isLight = document.body.classList.contains('light-theme');
-  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+  safeSetItem(THEME_KEY, isLight ? 'light' : 'dark');
   updateThemeMetaColor(isLight ? 'light' : 'dark'); updateThemeIcon();
 }
 function updateThemeIcon() {
@@ -563,7 +568,7 @@ function showToast(msg, dur = 2200, actionLabel = null, actionCallback = null) {
 }
 document.getElementById('toast-action-btn').addEventListener('click', () => { const cb = toastActionCallback; clearTimeout(toastTimeout); document.getElementById('toast').classList.remove('active'); toastActionCallback = null; if (cb) cb(); });
 document.getElementById('emoji-search').addEventListener('input', (e) => { emojiSearchTerm = e.target.value; buildEmojiGrid(); });
-function confirmResetAll() { showConfirm('¿Borrar todos los datos?', () => { localStorage.removeItem(STORAGE_KEY); closeSettingsModal(); loadState(); showToast('Datos borrados.'); }, { title: 'Reiniciar aplicación', okLabel: 'Borrar todo', danger: true }); }
+function confirmResetAll() { showConfirm('¿Borrar todos los datos?', () => { safeRemoveItem(STORAGE_KEY); closeSettingsModal(); loadState(); showToast('Datos borrados.'); }, { title: 'Reiniciar aplicación', okLabel: 'Borrar todo', danger: true }); }
 function toggleArchivedView() { showingArchived = !showingArchived; render(); }
 
 function getStreak(habit) {
@@ -787,10 +792,10 @@ function swipeDeleteHabit(habitId) { closeOpenSwipe(); deleteHabitDirect(habitId
 const SWIPE_HINT_KEY = 'cadena-swipe-hint-v1';
 function maybeShowSwipeHint() {
   try {
-    if (localStorage.getItem(SWIPE_HINT_KEY)) return; if (showingArchived) return;
+    if (safeGetItem(SWIPE_HINT_KEY)) return; if (showingArchived) return;
     const firstWrap = document.querySelector('#habit-list .habit-card-wrap'); if (!firstWrap) return;
     const card = firstWrap.querySelector('.habit-card'); if (!card) return;
-    localStorage.setItem(SWIPE_HINT_KEY, '1');
+    safeSetItem(SWIPE_HINT_KEY, '1');
     let cancelled = false; card.addEventListener('touchstart', () => { cancelled = true; card.style.transition = ''; card.style.transform = 'translateX(0)'; }, { once: true, passive: true });
     setTimeout(() => { if (cancelled) return; card.style.transition = 'transform 0.5s cubic-bezier(.22,1,.36,1)'; card.style.transform = 'translateX(-48px)'; setTimeout(() => { if (cancelled) return; card.style.transform = 'translateX(0)'; setTimeout(() => { if (!cancelled) card.style.transition = ''; }, 500); }, 620); }, 750);
   } catch (e) {}
