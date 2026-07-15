@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cadena-cache-v5';
+const CACHE_NAME = 'daily-habit-tracker-cache-v6';
 const ASSETS = [
   './',
   './index.html',
