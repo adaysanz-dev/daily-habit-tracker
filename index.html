@@ -63,10 +63,19 @@
   /* Nuevos Headers de Categoría */
   .category-header { font-family: 'Space Mono', monospace; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: 16px 0 2px 4px; letter-spacing: 0.05em; font-weight: 700;}
 
-  .habit-card{ background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding: 14px 14px 12px; cursor: grab; position: relative; transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s; }
-  .habit-card:active { cursor: grabbing; }
-  .habit-card.dragging { opacity: 0.6; transform: scale(0.98); box-shadow: 0 5px 15px var(--shadow); z-index: 10; }
-  .habit-card.drag-over { border-top: 2px solid var(--accent); }
+  /* Swipe-to-action: envoltorio que recorta y aloja los botones bajo la tarjeta */
+  .habit-card-wrap{ position:relative; border-radius: var(--radius); overflow:hidden; transition: transform 0.22s ease; }
+  .habit-card-wrap.reorder-lifted{ transition:none; z-index:60; }
+  .swipe-actions{ position:absolute; top:0; right:0; bottom:0; display:flex; align-items:stretch; }
+  .swipe-action{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; width:74px; border:none; font-family:'Work Sans',sans-serif; font-size:10.5px; font-weight:600; color:#fff; cursor:pointer; letter-spacing:.01em; -webkit-tap-highlight-color:transparent; }
+  .swipe-action .icon{ font-size:18px; line-height:1; }
+  .swipe-action.archive{ background: #6b7c72; }
+  .swipe-action.delete{ background: var(--danger); }
+  body.light-theme .swipe-action.archive{ background:#8a988f; }
+
+  .habit-card{ background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding: 14px 14px 12px; position: relative; transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s; touch-action: pan-y; will-change: transform; }
+  .habit-card.swiping{ transition: none; }
+  .habit-card.lifted{ transition: transform 0.15s ease, box-shadow 0.15s ease; transform: scale(1.035); box-shadow: 0 16px 34px var(--shadow); }
   .habit-top{ display:flex; align-items:center; gap:10px; }
   .habit-emoji{ font-size:22px; line-height:1; flex-shrink:0; }
   .habit-name-wrap{ flex:1; min-width:0; cursor:pointer; }
@@ -107,12 +116,20 @@
   .field-label{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:8px; display:block; }
   .field-input{ width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-size:15px; outline:none; margin-bottom:18px; box-sizing: border-box;}
   .field-input:focus{ border-color:var(--accent); }
+  .field-input.field-error{ border-color: var(--danger); animation: field-shake 0.4s; }
+  @keyframes field-shake { 10%,90%{transform:translateX(-1px);} 20%,80%{transform:translateX(2px);} 30%,50%,70%{transform:translateX(-4px);} 40%,60%{transform:translateX(4px);} }
   .input-group { display: flex; gap: 10px; }
   .input-group > * { flex: 1; }
 
-  .emoji-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:20px; }
+  .emoji-search{ margin-bottom:10px; }
+  .emoji-cat-tabs{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; margin-bottom:10px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .emoji-cat-tabs::-webkit-scrollbar{ display:none; }
+  .emoji-cat-tab{ flex-shrink:0; padding:6px 13px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted); font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; transition:.2s; }
+  .emoji-cat-tab.active{ background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+  .emoji-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:20px; max-height:186px; overflow-y:auto; padding-right:2px; }
   .emoji-opt{ aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:20px; background:var(--surface-2); border:2px solid transparent; border-radius:10px; cursor:pointer; }
   .emoji-opt.selected{ border-color:var(--accent); background: var(--accent-dim); }
+  .emoji-empty{ grid-column:1/-1; text-align:center; color:var(--text-muted); font-size:13px; padding:18px 0; }
 
   .freq-grid { display: flex; gap: 6px; margin-bottom: 20px; }
   .freq-day { flex: 1; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border: 2px solid transparent; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: 0.2s; }
@@ -156,8 +173,9 @@
   .note-section.active { display: block; }
   .note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   
-  .toast{ position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; gap: 14px; box-shadow: 0 8px 24px var(--shadow); z-index: 120; font-size:13px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+  .toast{ position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 10px 10px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px var(--shadow); z-index: 120; font-size:13px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 40px); }
   .toast.active{ opacity:1; pointer-events:auto; transform: translateX(-50%) translateY(0); }
+  .toast-action{ background: var(--accent-dim); border:none; color: var(--accent); font-weight:700; font-size:12.5px; cursor:pointer; padding:7px 12px; border-radius:8px; flex-shrink:0; }
 
   #timer-modal .modal-content { text-align: center; max-width: 380px; }
   .timer-display { font-family: 'Space Mono', monospace; font-size: 64px; font-weight: 700; color: var(--accent); margin: 30px 0; font-variant-numeric: tabular-nums; }
@@ -206,6 +224,8 @@
     <input type="text" id="habit-name-input" class="field-input" placeholder="Ej. Beber agua, Meditar..." maxlength="40">
     
     <label class="field-label">Icono</label>
+    <input type="text" id="emoji-search" class="field-input emoji-search" placeholder="Buscar icono (ej. agua, correr, leer)...">
+    <div class="emoji-cat-tabs" id="emoji-cat-tabs"></div>
     <div class="emoji-grid" id="emoji-grid"></div>
 
     <label class="field-label">Días de la semana</label>
@@ -334,17 +354,68 @@
 </div>
 
 <div class="modal-overlay" id="confirm-modal"><div class="modal-content" style="max-width:340px;"><h2 class="modal-title" id="confirm-title">Confirmar</h2><p id="confirm-message" style="color:var(--text); font-size:14px; line-height:1.5; margin:0 0 20px;"></p><div class="modal-actions"><button class="btn" id="confirm-cancel-btn">Cancelar</button><button class="btn btn-accent" id="confirm-ok-btn">Aceptar</button></div></div></div>
-<div class="toast" id="toast"><span id="toast-message"></span></div>
+<div class="toast" id="toast"><span id="toast-message"></span><button class="toast-action" id="toast-action-btn" style="display:none;"></button></div>
 
 <script>
 const STORAGE_KEY = 'cadena-data';
 const THEME_KEY = 'cadena-theme';
 const CHAIN_DAYS = 7;
-const EMOJIS = ['💧','🏃','🧘','📖','💊','🚭','🛌','🎯','✍️','🧹','🥗','🎨','💪','🎸','☀️','🚴','🎹','🌱'];
+const EMOJI_CATEGORIES = [
+  { id:'salud', label:'💧 Salud', items:[
+    {e:'💧',tags:['agua','beber','hidratacion']}, {e:'🧘',tags:['meditar','yoga','mindfulness','calma']},
+    {e:'🛌',tags:['dormir','sueno','descanso']}, {e:'💊',tags:['medicina','pastillas','vitaminas','salud']},
+    {e:'🩺',tags:['salud','medico','chequeo']}, {e:'🧴',tags:['crema','piel','cuidado']},
+    {e:'🦷',tags:['dientes','higiene','cepillar']}, {e:'❤️',tags:['corazon','salud','cardio']},
+    {e:'🧠',tags:['mente','cerebro','memoria']}, {e:'🌬️',tags:['respirar','aire','relajacion']}
+  ]},
+  { id:'fitness', label:'🏃 Fitness', items:[
+    {e:'🏃',tags:['correr','running','ejercicio']}, {e:'💪',tags:['fuerza','gym','pesas','entrenar']},
+    {e:'🚴',tags:['bici','ciclismo','pedalear']}, {e:'🏋️',tags:['pesas','gimnasio','levantar']},
+    {e:'🤸',tags:['estirar','flexibilidad','gimnasia']}, {e:'⚽',tags:['futbol','deporte']},
+    {e:'🥊',tags:['boxeo','pelear','entrenar']}, {e:'🚶',tags:['caminar','pasos','andar']},
+    {e:'🏊',tags:['nadar','natacion','piscina']}, {e:'🧗',tags:['escalar','montana']}
+  ]},
+  { id:'alimentacion', label:'🥗 Alimentación', items:[
+    {e:'🥗',tags:['comer sano','ensalada','dieta']}, {e:'🍎',tags:['fruta','sano','manzana']},
+    {e:'🥦',tags:['verdura','brocoli','sano']}, {e:'🍵',tags:['te','infusion']},
+    {e:'☕',tags:['cafe','cafeina']}, {e:'🚭',tags:['no fumar','dejar fumar','tabaco']},
+    {e:'🍫',tags:['dulce','chocolate','antojo']}, {e:'🥤',tags:['bebida','refresco']}
+  ]},
+  { id:'mente', label:'📖 Mente', items:[
+    {e:'📖',tags:['leer','lectura','libro']}, {e:'✍️',tags:['escribir','diario','journaling']},
+    {e:'🎯',tags:['objetivo','meta','foco']}, {e:'🧩',tags:['puzzle','pensar','resolver']},
+    {e:'🗣️',tags:['hablar','idioma','practicar']}, {e:'💻',tags:['ordenador','programar','codigo']},
+    {e:'📚',tags:['estudiar','libros','aprender']}, {e:'🎓',tags:['estudio','universidad','aprender']}
+  ]},
+  { id:'trabajo', label:'💼 Trabajo', items:[
+    {e:'💼',tags:['trabajo','oficina']}, {e:'📅',tags:['planificar','agenda','calendario']},
+    {e:'✅',tags:['tareas','hacer','completar']}, {e:'📈',tags:['progreso','crecer','finanzas']},
+    {e:'🧾',tags:['finanzas','gastos','ahorro']}, {e:'📌',tags:['recordatorio','nota']},
+    {e:'⏰',tags:['madrugar','despertar','hora','alarma']}
+  ]},
+  { id:'creatividad', label:'🎨 Creatividad', items:[
+    {e:'🎨',tags:['pintar','arte','dibujar']}, {e:'🎸',tags:['guitarra','musica','tocar']},
+    {e:'🎹',tags:['piano','musica','tocar']}, {e:'📷',tags:['fotografia','foto']},
+    {e:'🧵',tags:['coser','manualidades']}, {e:'🖌️',tags:['pintar','arte']}
+  ]},
+  { id:'hogar', label:'🧹 Hogar', items:[
+    {e:'🧹',tags:['limpiar','orden','casa']}, {e:'🧺',tags:['ropa','colada','lavar']},
+    {e:'🪴',tags:['plantas','regar','jardin']}, {e:'🛒',tags:['compra','supermercado']},
+    {e:'🔧',tags:['reparar','arreglar']}, {e:'🗑️',tags:['basura','reciclar']}
+  ]},
+  { id:'social', label:'✨ Social', items:[
+    {e:'👥',tags:['amigos','familia','social']}, {e:'📞',tags:['llamar','telefono']},
+    {e:'🎮',tags:['videojuegos','jugar']}, {e:'🎬',tags:['pelicula','ver']},
+    {e:'🐶',tags:['perro','mascota','pasear']}, {e:'🌳',tags:['naturaleza','aire libre']},
+    {e:'☀️',tags:['sol','manana','dia']}, {e:'🌙',tags:['noche','luna']}
+  ]}
+];
 
 let state = null;
 let editingHabitId = null;
-let selectedEmoji = EMOJIS[0];
+let selectedEmoji = EMOJI_CATEGORIES[0].items[0].e;
+let activeEmojiCat = 'all';
+let emojiSearchTerm = '';
 let selectedFreq = [0,1,2,3,4,5,6]; 
 let selectedType = 'boolean';
 let selectedTimeOfDay = 'any';
@@ -356,8 +427,6 @@ let selectedNoteDate = null;
 
 let activeActionHabitId = null; 
 let activeActionDateStr = null;
-
-let draggedHabitId = null;
 
 let timerInterval = null;
 let timerSecondsLeft = 0;
@@ -390,6 +459,7 @@ function loadState() {
     });
   } catch (e) { state = defaultState(); }
   saveState(); render();
+  setTimeout(maybeShowSwipeHint, 50);
 }
 function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { console.error(e); } }
 function isHabitDone(habit, val) {
@@ -431,7 +501,7 @@ function exportData() {
 function importData(event) {
   const file = event.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = (e) => { try { const imported = JSON.parse(e.target.result); if (imported && imported.habits) { state = imported; saveState(); loadState(); closeSettingsModal(); showToast("Datos importados"); } else throw new Error("Inválido"); } catch (err) { alert("Error al importar."); } };
+  reader.onload = (e) => { try { const imported = JSON.parse(e.target.result); if (imported && imported.habits) { state = imported; saveState(); loadState(); closeSettingsModal(); showToast("Datos importados"); } else throw new Error("Inválido"); } catch (err) { showToast('El archivo no es una copia de seguridad válida.', 3200); } };
   reader.readAsText(file);
 }
 
@@ -449,7 +519,32 @@ function closeConfirm() { document.getElementById('confirm-modal').classList.rem
 document.getElementById('confirm-cancel-btn').addEventListener('click', closeConfirm);
 document.getElementById('confirm-ok-btn').addEventListener('click', () => { const cb = confirmCallback; closeConfirm(); if (cb) cb(); });
 let toastTimeout = null;
-function showToast(msg, dur = 2200) { clearTimeout(toastTimeout); document.getElementById('toast-message').textContent = msg; document.getElementById('toast').classList.add('active'); toastTimeout = setTimeout(() => document.getElementById('toast').classList.remove('active'), dur); }
+let toastActionCallback = null;
+function flagInvalidField(id, message) {
+  const el = document.getElementById(id);
+  el.classList.remove('field-error'); void el.offsetWidth; // reinicia la animación si ya estaba activa
+  el.classList.add('field-error'); el.focus();
+  showToast(message, 2600);
+  setTimeout(() => el.classList.remove('field-error'), 900);
+}
+function showToast(msg, dur = 2200, actionLabel = null, actionCallback = null) {
+  clearTimeout(toastTimeout);
+  document.getElementById('toast-message').textContent = msg;
+  const actionBtn = document.getElementById('toast-action-btn');
+  toastActionCallback = actionCallback;
+  if (actionLabel && actionCallback) { actionBtn.textContent = actionLabel; actionBtn.style.display = 'block'; }
+  else { actionBtn.style.display = 'none'; }
+  document.getElementById('toast').classList.add('active');
+  toastTimeout = setTimeout(() => { document.getElementById('toast').classList.remove('active'); toastActionCallback = null; }, dur);
+}
+document.getElementById('toast-action-btn').addEventListener('click', () => {
+  const cb = toastActionCallback;
+  clearTimeout(toastTimeout);
+  document.getElementById('toast').classList.remove('active');
+  toastActionCallback = null;
+  if (cb) cb();
+});
+document.getElementById('emoji-search').addEventListener('input', (e) => { emojiSearchTerm = e.target.value; buildEmojiGrid(); });
 function confirmResetAll() { showConfirm('¿Borrar todos los datos?', () => { localStorage.removeItem(STORAGE_KEY); closeSettingsModal(); loadState(); showToast('Datos borrados.'); }, { title: 'Reiniciar aplicación', okLabel: 'Borrar todo', danger: true }); }
 function toggleArchivedView() { showingArchived = !showingArchived; render(); }
 
@@ -523,6 +618,7 @@ function renderRing() {
 }
 
 function renderHabitList() {
+  openSwipeWrap = null;
   const list = document.getElementById('habit-list'); list.innerHTML = '';
   const todayStr = getLocalDateStr(new Date()); const todayDow = new Date().getDay();
 
@@ -570,29 +666,22 @@ function renderHabitList() {
 }
 
 function renderHabitCard(habit, listContainer, todayStr, todayDow) {
+  // Envoltorio que recorta el swipe y aloja los botones de Archivar/Eliminar debajo de la tarjeta
+  const wrap = document.createElement('div'); wrap.className = 'habit-card-wrap';
+
+  const swipeActions = document.createElement('div'); swipeActions.className = 'swipe-actions';
+  const archiveBtn = document.createElement('button');
+  archiveBtn.className = 'swipe-action archive';
+  archiveBtn.innerHTML = `<span class="icon">${habit.archived ? '📤' : '📦'}</span><span>${habit.archived ? 'Restaurar' : 'Archivar'}</span>`;
+  archiveBtn.onclick = () => swipeToggleArchive(habit.id);
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'swipe-action delete';
+  deleteBtn.innerHTML = `<span class="icon">🗑️</span><span>Eliminar</span>`;
+  deleteBtn.onclick = () => swipeDeleteHabit(habit.id);
+  swipeActions.append(archiveBtn, deleteBtn);
+  wrap.appendChild(swipeActions);
+
   const card = document.createElement('div'); card.className = 'habit-card'; card.dataset.id = habit.id;
-  
-  if (!showingArchived) {
-    card.draggable = true;
-    card.addEventListener('dragstart', (e) => { 
-      draggedHabitId = habit.id; card.classList.add('dragging'); 
-      if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', habit.id); } 
-    });
-    card.addEventListener('dragend', () => card.classList.remove('dragging'));
-    card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
-    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
-    card.addEventListener('drop', (e) => { 
-      e.preventDefault(); card.classList.remove('drag-over'); 
-      if (draggedHabitId && draggedHabitId !== habit.id) { 
-        const draggedHabit = state.habits.find(h => h.id === draggedHabitId);
-        state.habits = state.habits.filter(h => h.id !== draggedHabitId);
-        draggedHabit.timeOfDay = habit.timeOfDay; // Adopta la categoría del hábito donde se soltó
-        const newIndex = state.habits.findIndex(h => h.id === habit.id);
-        state.habits.splice(newIndex, 0, draggedHabit); 
-        saveState(); render(); 
-      } 
-    });
-  }
 
   const streak = getStreak(habit);
   const valToday = habit.completions[todayStr];
@@ -623,7 +712,201 @@ function renderHabitCard(habit, listContainer, todayStr, todayDow) {
   
   checkBtn.onclick = () => handleActionClick(habit.id, todayStr);
   actions.append(moreBtn, checkBtn); top.appendChild(actions);
-  card.appendChild(top); card.appendChild(renderChain(habit, todayStr)); listContainer.appendChild(card);
+  card.appendChild(top); card.appendChild(renderChain(habit, todayStr));
+  wrap.appendChild(card); listContainer.appendChild(wrap);
+
+  if (!showingArchived) attachCardGestures(card, wrap, swipeActions, habit.id);
+}
+
+// ==== GESTOS TÁCTILES NATIVOS ====
+// Deslizar hacia la izquierda -> revela Archivar/Eliminar. Mantener pulsado -> "levanta" la tarjeta para reordenar (como en la pantalla de inicio de iOS), sin depender del drag&drop HTML5 (que no funciona con el dedo en iOS/Safari).
+let openSwipeWrap = null;  // tarjeta con las acciones abiertas actualmente
+let reorderState = null;   // estado activo mientras se arrastra una tarjeta para reordenar
+const LONG_PRESS_MS = 420;
+const MOVE_DECIDE_PX = 8;
+
+function closeOpenSwipe() {
+  if (openSwipeWrap) {
+    const openCard = openSwipeWrap.querySelector('.habit-card');
+    if (openCard) openCard.style.transform = 'translateX(0)';
+    openSwipeWrap.classList.remove('swipe-open');
+    openSwipeWrap = null;
+  }
+}
+
+function attachCardGestures(card, wrap, swipeActionsEl, habitId) {
+  let startX = 0, startY = 0, currentX = 0, mode = null, longPressTimer = null, suppressClick = false;
+  const actionsWidth = () => swipeActionsEl.offsetWidth || 148;
+  const OPEN_THRESHOLD = 0.35;
+  const cancelLongPress = () => { clearTimeout(longPressTimer); longPressTimer = null; };
+
+  card.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    closeOpenSwipe();
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY; currentX = 0; mode = null;
+    longPressTimer = setTimeout(() => {
+      if (mode === null) { mode = 'reorder'; startReorder(wrap, card, t.clientY); }
+    }, LONG_PRESS_MS);
+  }, { passive: true });
+
+  card.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    const dx = t.clientX - startX; const dy = t.clientY - startY;
+
+    if (mode === 'reorder') { e.preventDefault(); updateReorder(t.clientY); return; }
+    if (mode === 'swipe') {
+      e.preventDefault();
+      const wasOpen = wrap.classList.contains('swipe-open');
+      const base = wasOpen ? -actionsWidth() : 0;
+      currentX = Math.max(-actionsWidth() - 12, Math.min(0, base + dx));
+      card.style.transform = `translateX(${currentX}px)`;
+      return;
+    }
+    if (mode === 'scroll') return; // deja que la página haga scroll vertical normal
+
+    if (Math.abs(dx) > MOVE_DECIDE_PX || Math.abs(dy) > MOVE_DECIDE_PX) {
+      cancelLongPress();
+      mode = Math.abs(dx) > Math.abs(dy) ? 'swipe' : 'scroll';
+      if (mode === 'swipe') card.classList.add('swiping');
+    }
+  }, { passive: false });
+
+  const endGesture = () => {
+    cancelLongPress();
+    if (mode === 'reorder') {
+      endReorder();
+    } else if (mode === 'swipe') {
+      card.classList.remove('swiping');
+      const width = actionsWidth();
+      if (currentX < -width * OPEN_THRESHOLD) {
+        card.style.transform = `translateX(-${width}px)`;
+        wrap.classList.add('swipe-open'); openSwipeWrap = wrap;
+        if (navigator.vibrate) navigator.vibrate(8);
+      } else {
+        card.style.transform = 'translateX(0)';
+      }
+      if (Math.abs(currentX) > 10) { suppressClick = true; setTimeout(() => suppressClick = false, 250); }
+    }
+    mode = null;
+  };
+  card.addEventListener('touchend', endGesture);
+  card.addEventListener('touchcancel', endGesture);
+
+  // Evita que el toque tras deslizar o reordenar se interprete como un tap normal sobre el nombre o el check
+  card.addEventListener('click', (e) => { if (suppressClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+}
+
+function swipeToggleArchive(habitId) {
+  closeOpenSwipe();
+  const habit = state.habits.find(h => h.id === habitId); if (!habit) return;
+  habit.archived = !habit.archived;
+  saveState(); render();
+  showToast(habit.archived ? 'Hábito archivado' : 'Hábito restaurado');
+}
+
+function swipeDeleteHabit(habitId) {
+  closeOpenSwipe();
+  deleteHabitDirect(habitId);
+}
+
+// ---- Pista de swipe la primera vez (como Apple Mail: enseña el gesto sin necesidad de explicarlo) ----
+const SWIPE_HINT_KEY = 'cadena-swipe-hint-v1';
+function maybeShowSwipeHint() {
+  try {
+    if (localStorage.getItem(SWIPE_HINT_KEY)) return;
+    if (showingArchived) return;
+    const firstWrap = document.querySelector('#habit-list .habit-card-wrap');
+    if (!firstWrap) return;
+    const card = firstWrap.querySelector('.habit-card');
+    if (!card) return;
+    localStorage.setItem(SWIPE_HINT_KEY, '1');
+
+    let cancelled = false;
+    card.addEventListener('touchstart', () => { cancelled = true; card.style.transition = ''; card.style.transform = 'translateX(0)'; }, { once: true, passive: true });
+
+    setTimeout(() => {
+      if (cancelled) return;
+      card.style.transition = 'transform 0.5s cubic-bezier(.22,1,.36,1)';
+      card.style.transform = 'translateX(-48px)';
+      setTimeout(() => {
+        if (cancelled) return;
+        card.style.transform = 'translateX(0)';
+        setTimeout(() => { if (!cancelled) card.style.transition = ''; }, 500);
+      }, 620);
+    }, 750);
+  } catch (e) {}
+}
+
+// ---- Reordenar manteniendo pulsado (estilo iOS) ----
+function startReorder(wrap, card, clientY) {
+  const listEl = document.getElementById('habit-list');
+  const wraps = [...listEl.querySelectorAll('.habit-card-wrap')];
+  const originalIndex = wraps.indexOf(wrap);
+  if (originalIndex === -1) return;
+  const rect = wrap.getBoundingClientRect();
+  const gap = 12; // debe coincidir con el gap de <main>
+  reorderState = { wraps, originalIndex, currentIndex: originalIndex, itemHeight: rect.height + gap, startClientY: clientY, wrap, card };
+  card.style.transform = '';
+  wrap.style.overflow = 'visible'; // para que el escalado/sombra de la tarjeta no se recorte
+  wrap.classList.add('reorder-lifted');
+  card.classList.add('lifted');
+  wrap.style.zIndex = '60';
+  if (navigator.vibrate) navigator.vibrate(12);
+}
+
+function updateReorder(clientY) {
+  if (!reorderState) return;
+  const rs = reorderState;
+  const dy = clientY - rs.startClientY;
+  rs.wrap.style.transform = `translateY(${dy}px)`;
+
+  let idx = rs.originalIndex + Math.round(dy / rs.itemHeight);
+  idx = Math.max(0, Math.min(rs.wraps.length - 1, idx));
+  if (idx !== rs.currentIndex) {
+    rs.wraps.forEach((w, i) => {
+      if (w === rs.wrap) return;
+      let shift = 0;
+      if (idx > rs.originalIndex) { if (i > rs.originalIndex && i <= idx) shift = -1; }
+      else if (idx < rs.originalIndex) { if (i >= idx && i < rs.originalIndex) shift = 1; }
+      w.style.transform = shift !== 0 ? `translateY(${shift * rs.itemHeight}px)` : '';
+    });
+    rs.currentIndex = idx;
+  }
+}
+
+function endReorder() {
+  if (!reorderState) return;
+  const rs = reorderState;
+  const finalIndex = rs.currentIndex;
+
+  rs.wraps.forEach(w => { w.style.transform = ''; });
+  rs.wrap.classList.remove('reorder-lifted'); rs.card.classList.remove('lifted');
+  rs.wrap.style.zIndex = ''; rs.wrap.style.overflow = '';
+
+  if (finalIndex !== rs.originalIndex) {
+    const newOrderIds = rs.wraps.map(w => w.dataset.id);
+    const [movedId] = newOrderIds.splice(rs.originalIndex, 1);
+    newOrderIds.splice(finalIndex, 0, movedId);
+
+    // Adopta la categoría (momento del día) del vecino donde se ha soltado
+    const habit = state.habits.find(h => h.id === movedId);
+    const neighborId = newOrderIds[finalIndex - 1] || newOrderIds[finalIndex + 1];
+    if (habit && neighborId) {
+      const neighborHabit = state.habits.find(h => h.id === neighborId);
+      if (neighborHabit) habit.timeOfDay = neighborHabit.timeOfDay;
+    }
+
+    const archived = state.habits.filter(h => h.archived);
+    const activeMap = new Map(state.habits.filter(h => !h.archived).map(h => [h.id, h]));
+    const reorderedActive = newOrderIds.map(id => activeMap.get(id)).filter(Boolean);
+    state.habits = [...reorderedActive, ...archived];
+
+    saveState();
+    if (navigator.vibrate) navigator.vibrate(6);
+  }
+  render();
+  reorderState = null;
 }
 
 function renderChain(habit, todayStr) {
@@ -750,7 +1033,38 @@ function completeTimerEarly() {
 }
 
 
-function buildEmojiGrid() { const grid = document.getElementById('emoji-grid'); grid.innerHTML = ''; EMOJIS.forEach(e => { const opt = document.createElement('div'); opt.className = 'emoji-opt' + (e === selectedEmoji ? ' selected' : ''); opt.textContent = e; opt.onclick = () => { selectedEmoji = e; buildEmojiGrid(); }; grid.appendChild(opt); }); }
+function buildEmojiCatTabs() {
+  const tabs = document.getElementById('emoji-cat-tabs'); tabs.innerHTML = '';
+  const allTab = document.createElement('button'); allTab.type = 'button';
+  allTab.className = 'emoji-cat-tab' + (activeEmojiCat === 'all' ? ' active' : ''); allTab.textContent = 'Todos';
+  allTab.onclick = () => { activeEmojiCat = 'all'; buildEmojiCatTabs(); buildEmojiGrid(); };
+  tabs.appendChild(allTab);
+  EMOJI_CATEGORIES.forEach(cat => {
+    const t = document.createElement('button'); t.type = 'button';
+    t.className = 'emoji-cat-tab' + (activeEmojiCat === cat.id ? ' active' : ''); t.textContent = cat.label;
+    t.onclick = () => { activeEmojiCat = cat.id; buildEmojiCatTabs(); buildEmojiGrid(); };
+    tabs.appendChild(t);
+  });
+}
+
+function buildEmojiGrid() {
+  const grid = document.getElementById('emoji-grid'); grid.innerHTML = '';
+  const term = emojiSearchTerm.trim().toLowerCase();
+  let pool = [];
+  if (term) {
+    // La búsqueda ignora la pestaña activa y mira en todas las categorías
+    EMOJI_CATEGORIES.forEach(cat => pool.push(...cat.items));
+    pool = pool.filter(it => it.e === term || it.tags.some(tag => tag.includes(term)));
+  } else {
+    EMOJI_CATEGORIES.forEach(cat => { if (activeEmojiCat === 'all' || activeEmojiCat === cat.id) pool.push(...cat.items); });
+  }
+  if (pool.length === 0) { grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); font-size:13px; padding:16px 0;">Sin resultados</div>`; return; }
+  pool.forEach(it => {
+    const opt = document.createElement('div'); opt.className = 'emoji-opt' + (it.e === selectedEmoji ? ' selected' : ''); opt.textContent = it.e;
+    opt.onclick = () => { selectedEmoji = it.e; buildEmojiGrid(); };
+    grid.appendChild(opt);
+  });
+}
 function bindFreqEvents() { document.querySelectorAll('.freq-day').forEach(el => { el.onclick = () => { const day = parseInt(el.dataset.day); if (selectedFreq.includes(day)) { if (selectedFreq.length > 1) selectedFreq = selectedFreq.filter(d => d !== day); } else { selectedFreq.push(day); } updateFreqUI(); }; }); }
 function updateFreqUI() { document.querySelectorAll('.freq-day').forEach(el => { if (selectedFreq.includes(parseInt(el.dataset.day))) el.classList.add('selected'); else el.classList.remove('selected'); }); }
 
@@ -789,7 +1103,7 @@ function openHabitModal(habitId = null) {
     document.getElementById('habit-archive-btn').title = habit.archived ? 'Desarchivar' : 'Archivar';
   }
   
-  selectedEmoji = habit ? habit.emoji : EMOJIS[0];
+  selectedEmoji = habit ? habit.emoji : EMOJI_CATEGORIES[0].items[0].e;
   selectedFreq = habit ? [...habit.frequency] : [0,1,2,3,4,5,6];
   
   document.getElementById('habit-target').value = habit && habit.type === 'numeric' ? habit.target : '';
@@ -799,7 +1113,8 @@ function openHabitModal(habitId = null) {
   selectHabitType(habit ? habit.type : 'boolean');
   selectTimeOfDay(habit && habit.timeOfDay ? habit.timeOfDay : 'any');
   
-  buildEmojiGrid(); bindFreqEvents(); updateFreqUI();
+  emojiSearchTerm = ''; document.getElementById('emoji-search').value = ''; activeEmojiCat = 'all';
+  buildEmojiCatTabs(); buildEmojiGrid(); bindFreqEvents(); updateFreqUI();
   document.getElementById('habit-modal').classList.add('active');
   setTimeout(() => document.getElementById('habit-name-input').focus(), 50);
 }
@@ -807,14 +1122,14 @@ function openHabitModal(habitId = null) {
 function closeHabitModal() { document.getElementById('habit-modal').classList.remove('active'); editingHabitId = null; }
 
 function saveHabitFromModal() {
-  const name = document.getElementById('habit-name-input').value.trim(); if (!name) { document.getElementById('habit-name-input').focus(); return; }
+  const name = document.getElementById('habit-name-input').value.trim(); if (!name) { flagInvalidField('habit-name-input', 'Ponle un nombre a tu hábito.'); return; }
   
   let target = null, unit = null, duration = null;
   if (selectedType === 'numeric') {
-    target = parseFloat(document.getElementById('habit-target').value); if (!target || target <= 0) { alert('Introduce un objetivo numérico válido.'); return; }
+    target = parseFloat(document.getElementById('habit-target').value); if (!target || target <= 0) { flagInvalidField('habit-target', 'Introduce un objetivo numérico válido.'); return; }
     unit = document.getElementById('habit-unit').value.trim();
   } else if (selectedType === 'timer') {
-    duration = parseInt(document.getElementById('habit-duration').value); if (!duration || duration <= 0) { alert('Introduce un tiempo válido en minutos.'); return; }
+    duration = parseInt(document.getElementById('habit-duration').value); if (!duration || duration <= 0) { flagInvalidField('habit-duration', 'Introduce un tiempo válido en minutos.'); return; }
   }
   
   if (editingHabitId) {
@@ -826,7 +1141,25 @@ function saveHabitFromModal() {
   saveState(); render(); closeHabitModal();
 }
 
-function deleteHabitFromModal() { const habit = state.habits.find(h => h.id === editingHabitId); showConfirm(`¿Eliminar el hábito "${habit.name}"?`, () => { state.habits = state.habits.filter(h => h.id !== habit.id); saveState(); render(); closeHabitModal(); }, {title: 'Eliminar Hábito', danger: true}); }
+function deleteHabitFromModal() {
+  const habit = state.habits.find(h => h.id === editingHabitId); if (!habit) return;
+  closeHabitModal();
+  deleteHabitDirect(habit.id);
+}
+
+// Borra el hábito al instante (patrón nativo iOS) y ofrece deshacer unos segundos en vez de pedir confirmación previa
+function deleteHabitDirect(habitId) {
+  const idx = state.habits.findIndex(h => h.id === habitId); if (idx === -1) return;
+  const [removedHabit] = state.habits.splice(idx, 1);
+  saveState(); render();
+  if (navigator.vibrate) navigator.vibrate([12, 30, 12]);
+  showToast(`"${removedHabit.name}" eliminado`, 4500, 'Deshacer', () => {
+    const restoreIdx = Math.min(idx, state.habits.length);
+    state.habits.splice(restoreIdx, 0, removedHabit);
+    saveState(); render();
+    showToast('Hábito restaurado');
+  });
+}
 
 function toggleArchiveHabitFromModal() {
   const habit = state.habits.find(h => h.id === editingHabitId); if (!habit) return;
@@ -912,6 +1245,12 @@ function renderDetailModal() {
     cal.appendChild(dayDiv);
   }
 }
+document.addEventListener('touchstart', (e) => {
+  if (openSwipeWrap && !openSwipeWrap.contains(e.target)) closeOpenSwipe();
+}, { passive: true });
+document.addEventListener('click', (e) => {
+  if (openSwipeWrap && !openSwipeWrap.contains(e.target)) closeOpenSwipe();
+});
 initTheme(); loadState();
 </script>
 </body>
