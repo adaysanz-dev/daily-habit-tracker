@@ -1,10 +1,10 @@
-const CACHE_NAME = 'daily-habit-tracker-cache-v7';
+const CACHE_NAME = 'daily-habit-tracker-cache-v8';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
