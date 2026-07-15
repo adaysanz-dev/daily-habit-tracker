@@ -60,11 +60,11 @@
 
   main{ flex:1; padding: 10px 20px 0; display:flex; flex-direction:column; gap:12px; }
   
-  /* Nuevos Headers de Categoría */
   .category-header { font-family: 'Space Mono', monospace; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: 16px 0 2px 4px; letter-spacing: 0.05em; font-weight: 700;}
 
   /* Swipe-to-action: envoltorio que recorta y aloja los botones bajo la tarjeta */
-  .habit-card-wrap{ position:relative; border-radius: var(--radius); overflow:hidden; transition: transform 0.22s ease; }
+  .habit-card-wrap{ position:relative; border-radius: var(--radius); overflow:hidden; transition: transform 0.22s ease, opacity 0.3s ease, height 0.3s ease, margin 0.3s ease; }
+  .habit-card-wrap.collapsing { height: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; opacity: 0; pointer-events: none; }
   .habit-card-wrap.reorder-lifted{ transition:none; z-index:60; }
   .swipe-actions{ position:absolute; top:0; right:0; bottom:0; display:flex; align-items:stretch; }
   .swipe-action{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; width:74px; border:none; font-family:'Work Sans',sans-serif; font-size:10.5px; font-weight:600; color:#fff; cursor:pointer; letter-spacing:.01em; -webkit-tap-highlight-color:transparent; }
@@ -215,7 +215,6 @@
   Nuevo hábito
 </button>
 
-<!-- Modal Crear/Editar Hábito -->
 <div class="modal-overlay" id="habit-modal">
   <div class="modal-content">
     <h2 class="modal-title" id="habit-modal-title">Nuevo hábito</h2>
@@ -234,7 +233,6 @@
       <div class="freq-day" data-day="4">J</div><div class="freq-day" data-day="5">V</div><div class="freq-day" data-day="6">S</div><div class="freq-day" data-day="0">D</div>
     </div>
 
-    <!-- Novedad: Momento del día -->
     <label class="field-label">Momento del día</label>
     <div class="status-group" id="tod-group" style="margin-bottom:20px;">
       <button class="status-btn active" id="tod-morning" onclick="selectTimeOfDay('morning')" style="border-color:var(--accent); color:var(--text);">Mañana</button>
@@ -262,7 +260,6 @@
       <input type="number" id="habit-duration" class="field-input" placeholder="Ej. 15" min="1" max="1440">
     </div>
 
-    <!-- Novedad: Botón de archivar integrado -->
     <div class="modal-actions" style="margin-top: 10px;">
       <button class="btn btn-danger" id="habit-delete-btn" style="display:none;" onclick="deleteHabitFromModal()" title="Eliminar">🗑️</button>
       <button class="btn" id="habit-archive-btn" style="display:none; flex:none; width:48px;" onclick="toggleArchiveHabitFromModal()" title="Archivar">📦</button>
@@ -272,7 +269,6 @@
   </div>
 </div>
 
-<!-- Modal Progreso Numérico -->
 <div class="modal-overlay" id="numeric-modal">
   <div class="modal-content" style="max-width: 320px; text-align: center;">
     <h2 class="modal-title" id="numeric-title">Progreso</h2>
@@ -291,7 +287,6 @@
   </div>
 </div>
 
-<!-- Modal Temporizador -->
 <div class="modal-overlay" id="timer-modal">
   <div class="modal-content">
     <h2 class="modal-title" id="timer-title" style="margin-bottom: 5px;">Meditar</h2>
@@ -308,7 +303,6 @@
   </div>
 </div>
 
-<!-- Modal Ajustes Generales -->
 <div class="modal-overlay" id="settings-modal">
   <div class="modal-content">
     <h2 class="modal-title">Opciones</h2>
@@ -319,7 +313,6 @@
   </div>
 </div>
 
-<!-- Modal Detalle -->
 <div class="modal-overlay" id="detail-modal">
   <div class="modal-content">
     <h2 class="modal-title" id="detail-title">Hábito</h2>
@@ -428,11 +421,53 @@ let selectedNoteDate = null;
 let activeActionHabitId = null; 
 let activeActionDateStr = null;
 
-let timerInterval = null;
+// --- 1. Estado y Configuración del Temporizador ---
 let timerSecondsLeft = 0;
 let timerTotalSeconds = 0;
 let isTimerRunning = false;
 let lastTimerTick = 0;
+
+// --- 2. Configuración del Screen Wake Lock ---
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+  } catch (err) { console.log('Wake Lock denegado:', err); }
+}
+function releaseWakeLock() {
+  if (wakeLock !== null) { wakeLock.release().then(() => wakeLock = null); }
+}
+// Reconectar Wake Lock si el usuario cambia de pestaña y vuelve
+document.addEventListener('visibilitychange', async () => {
+  if (wakeLock !== null && document.visibilityState === 'visible' && isTimerRunning) {
+    await requestWakeLock();
+  }
+});
+
+// --- 3. Configuración del Web Worker en línea ---
+const workerCode = `
+  let int; 
+  self.onmessage = e => { 
+    if(e.data === 'start') int = setInterval(() => postMessage('tick'), 200); 
+    else clearInterval(int); 
+  }
+`;
+const timerWorker = new Worker(URL.createObjectURL(new Blob([workerCode], {type: 'application/javascript'})));
+
+timerWorker.onmessage = () => {
+  if (!isTimerRunning) return;
+  const now = Date.now();
+  const delta = Math.floor((now - lastTimerTick) / 1000);
+  if (delta > 0) {
+    timerSecondsLeft -= delta;
+    lastTimerTick = now;
+    if (timerSecondsLeft <= 0) {
+      timerSecondsLeft = 0; updateTimerDisplay(); completeTimerEarly();
+    } else {
+      updateTimerDisplay();
+    }
+  }
+};
 
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function getLocalDateStr(date) { const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000); return d.toISOString().split('T')[0]; }
@@ -450,8 +485,8 @@ function loadState() {
       if (!h.notes) h.notes = {};
       if (!h.frequency) h.frequency = [0,1,2,3,4,5,6]; 
       if (!h.type) h.type = 'boolean'; 
-      if (!h.timeOfDay) h.timeOfDay = 'any'; // Migración Momentos del Día
-      if (typeof h.archived === 'undefined') h.archived = false; // Migración Archivados
+      if (!h.timeOfDay) h.timeOfDay = 'any'; 
+      if (typeof h.archived === 'undefined') h.archived = false; 
       
       Object.keys(h.completions).forEach(date => {
         if (h.completions[date] === true) h.completions[date] = 'done';
@@ -522,7 +557,7 @@ let toastTimeout = null;
 let toastActionCallback = null;
 function flagInvalidField(id, message) {
   const el = document.getElementById(id);
-  el.classList.remove('field-error'); void el.offsetWidth; // reinicia la animación si ya estaba activa
+  el.classList.remove('field-error'); void el.offsetWidth; 
   el.classList.add('field-error'); el.focus();
   showToast(message, 2600);
   setTimeout(() => el.classList.remove('field-error'), 900);
@@ -666,7 +701,6 @@ function renderHabitList() {
 }
 
 function renderHabitCard(habit, listContainer, todayStr, todayDow) {
-  // Envoltorio que recorta el swipe y aloja los botones de Archivar/Eliminar debajo de la tarjeta
   const wrap = document.createElement('div'); wrap.className = 'habit-card-wrap';
 
   const swipeActions = document.createElement('div'); swipeActions.className = 'swipe-actions';
@@ -719,9 +753,8 @@ function renderHabitCard(habit, listContainer, todayStr, todayDow) {
 }
 
 // ==== GESTOS TÁCTILES NATIVOS ====
-// Deslizar hacia la izquierda -> revela Archivar/Eliminar. Mantener pulsado -> "levanta" la tarjeta para reordenar (como en la pantalla de inicio de iOS), sin depender del drag&drop HTML5 (que no funciona con el dedo en iOS/Safari).
-let openSwipeWrap = null;  // tarjeta con las acciones abiertas actualmente
-let reorderState = null;   // estado activo mientras se arrastra una tarjeta para reordenar
+let openSwipeWrap = null;  
+let reorderState = null;   
 const LONG_PRESS_MS = 420;
 const MOVE_DECIDE_PX = 8;
 
@@ -763,7 +796,7 @@ function attachCardGestures(card, wrap, swipeActionsEl, habitId) {
       card.style.transform = `translateX(${currentX}px)`;
       return;
     }
-    if (mode === 'scroll') return; // deja que la página haga scroll vertical normal
+    if (mode === 'scroll') return; 
 
     if (Math.abs(dx) > MOVE_DECIDE_PX || Math.abs(dy) > MOVE_DECIDE_PX) {
       cancelLongPress();
@@ -793,16 +826,33 @@ function attachCardGestures(card, wrap, swipeActionsEl, habitId) {
   card.addEventListener('touchend', endGesture);
   card.addEventListener('touchcancel', endGesture);
 
-  // Evita que el toque tras deslizar o reordenar se interprete como un tap normal sobre el nombre o el check
   card.addEventListener('click', (e) => { if (suppressClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+}
+
+// ==== ANIMACIONES DE ELIMINACIÓN/ARCHIVO ====
+function animateRemoval(habitId, callback) {
+  const cardElement = document.querySelector(`.habit-card[data-id="${habitId}"]`);
+  if (!cardElement) { callback(); return; }
+  
+  const cardWrap = cardElement.closest('.habit-card-wrap');
+  if (cardWrap) {
+    cardWrap.style.height = cardWrap.offsetHeight + 'px'; 
+    void cardWrap.offsetHeight; 
+    cardWrap.classList.add('collapsing');
+    setTimeout(callback, 280); 
+  } else {
+    callback();
+  }
 }
 
 function swipeToggleArchive(habitId) {
   closeOpenSwipe();
-  const habit = state.habits.find(h => h.id === habitId); if (!habit) return;
-  habit.archived = !habit.archived;
-  saveState(); render();
-  showToast(habit.archived ? 'Hábito archivado' : 'Hábito restaurado');
+  animateRemoval(habitId, () => {
+    const habit = state.habits.find(h => h.id === habitId); if (!habit) return;
+    habit.archived = !habit.archived;
+    saveState(); render();
+    showToast(habit.archived ? 'Hábito archivado' : 'Hábito restaurado');
+  });
 }
 
 function swipeDeleteHabit(habitId) {
@@ -810,7 +860,6 @@ function swipeDeleteHabit(habitId) {
   deleteHabitDirect(habitId);
 }
 
-// ---- Pista de swipe la primera vez (como Apple Mail: enseña el gesto sin necesidad de explicarlo) ----
 const SWIPE_HINT_KEY = 'cadena-swipe-hint-v1';
 function maybeShowSwipeHint() {
   try {
@@ -838,17 +887,16 @@ function maybeShowSwipeHint() {
   } catch (e) {}
 }
 
-// ---- Reordenar manteniendo pulsado (estilo iOS) ----
 function startReorder(wrap, card, clientY) {
   const listEl = document.getElementById('habit-list');
   const wraps = [...listEl.querySelectorAll('.habit-card-wrap')];
   const originalIndex = wraps.indexOf(wrap);
   if (originalIndex === -1) return;
   const rect = wrap.getBoundingClientRect();
-  const gap = 12; // debe coincidir con el gap de <main>
+  const gap = 12; 
   reorderState = { wraps, originalIndex, currentIndex: originalIndex, itemHeight: rect.height + gap, startClientY: clientY, wrap, card };
   card.style.transform = '';
-  wrap.style.overflow = 'visible'; // para que el escalado/sombra de la tarjeta no se recorte
+  wrap.style.overflow = 'visible'; 
   wrap.classList.add('reorder-lifted');
   card.classList.add('lifted');
   wrap.style.zIndex = '60';
@@ -889,7 +937,6 @@ function endReorder() {
     const [movedId] = newOrderIds.splice(rs.originalIndex, 1);
     newOrderIds.splice(finalIndex, 0, movedId);
 
-    // Adopta la categoría (momento del día) del vecino donde se ha soltado
     const habit = state.habits.find(h => h.id === movedId);
     const neighborId = newOrderIds[finalIndex - 1] || newOrderIds[finalIndex + 1];
     if (habit && neighborId) {
@@ -1006,30 +1053,60 @@ function saveNumericProgress() {
   refreshDetailCalendar(habit.id, activeActionDateStr);
 }
 
+// ==== CONTROLES DEL TEMPORIZADOR ACTUALIZADOS ====
 function openTimerModal(habit) {
   timerTotalSeconds = habit.duration * 60; timerSecondsLeft = timerTotalSeconds; isTimerRunning = false;
   document.getElementById('timer-title').textContent = habit.name; updateTimerDisplay();
   const playBtn = document.getElementById('timer-btn-play'); playBtn.innerHTML = '▶'; playBtn.classList.remove('danger'); playBtn.classList.add('play');
   document.getElementById('timer-modal').classList.add('active');
 }
-function closeTimerModal() { stopTimerInterval(); document.getElementById('timer-modal').classList.remove('active'); }
-function updateTimerDisplay() { const m = Math.floor(timerSecondsLeft / 60).toString().padStart(2, '0'); const s = (timerSecondsLeft % 60).toString().padStart(2, '0'); document.getElementById('timer-display').textContent = `${m}:${s}`; }
+
+function closeTimerModal() { 
+  stopTimerInterval(); 
+  document.getElementById('timer-modal').classList.remove('active'); 
+}
+
+function updateTimerDisplay() { 
+  const m = Math.floor(timerSecondsLeft / 60).toString().padStart(2, '0'); 
+  const s = (timerSecondsLeft % 60).toString().padStart(2, '0'); 
+  document.getElementById('timer-display').textContent = `${m}:${s}`; 
+}
+
 function toggleTimerPlay() {
   const playBtn = document.getElementById('timer-btn-play');
-  if (isTimerRunning) { stopTimerInterval(); isTimerRunning = false; playBtn.innerHTML = '▶'; } 
-  else {
-    isTimerRunning = true; lastTimerTick = Date.now(); playBtn.innerHTML = '⏸';
-    timerInterval = setInterval(() => {
-      const now = Date.now(); const delta = Math.floor((now - lastTimerTick) / 1000);
-      if (delta > 0) { timerSecondsLeft -= delta; lastTimerTick = now; if (timerSecondsLeft <= 0) { timerSecondsLeft = 0; updateTimerDisplay(); completeTimerEarly(); } else { updateTimerDisplay(); } }
-    }, 200); 
+  if (isTimerRunning) { 
+    stopTimerInterval(); 
+    isTimerRunning = false; 
+    playBtn.innerHTML = '▶'; 
+  } else {
+    isTimerRunning = true; 
+    lastTimerTick = Date.now(); 
+    playBtn.innerHTML = '⏸';
+    requestWakeLock(); 
+    timerWorker.postMessage('start'); 
   }
 }
-function stopTimerInterval() { if(timerInterval) clearInterval(timerInterval); timerInterval = null; }
-function stopTimer() { stopTimerInterval(); isTimerRunning = false; timerSecondsLeft = timerTotalSeconds; document.getElementById('timer-btn-play').innerHTML = '▶'; updateTimerDisplay(); }
+
+function stopTimerInterval() { 
+  timerWorker.postMessage('stop'); 
+  releaseWakeLock(); 
+}
+
+function stopTimer() { 
+  stopTimerInterval(); 
+  isTimerRunning = false; 
+  timerSecondsLeft = timerTotalSeconds; 
+  document.getElementById('timer-btn-play').innerHTML = '▶'; 
+  updateTimerDisplay(); 
+}
+
 function completeTimerEarly() {
-  closeTimerModal(); const habit = state.habits.find(h => h.id === activeActionHabitId); habit.completions[activeActionDateStr] = 'done';
-  saveState(); render(); if (activeActionDateStr === getLocalDateStr(new Date())) checkAllDoneToday(); refreshDetailCalendar(habit.id, activeActionDateStr);
+  closeTimerModal(); 
+  const habit = state.habits.find(h => h.id === activeActionHabitId); 
+  habit.completions[activeActionDateStr] = 'done';
+  saveState(); render(); 
+  if (activeActionDateStr === getLocalDateStr(new Date())) checkAllDoneToday(); 
+  refreshDetailCalendar(habit.id, activeActionDateStr);
 }
 
 
@@ -1052,7 +1129,6 @@ function buildEmojiGrid() {
   const term = emojiSearchTerm.trim().toLowerCase();
   let pool = [];
   if (term) {
-    // La búsqueda ignora la pestaña activa y mira en todas las categorías
     EMOJI_CATEGORIES.forEach(cat => pool.push(...cat.items));
     pool = pool.filter(it => it.e === term || it.tags.some(tag => tag.includes(term)));
   } else {
@@ -1147,17 +1223,19 @@ function deleteHabitFromModal() {
   deleteHabitDirect(habit.id);
 }
 
-// Borra el hábito al instante (patrón nativo iOS) y ofrece deshacer unos segundos en vez de pedir confirmación previa
 function deleteHabitDirect(habitId) {
   const idx = state.habits.findIndex(h => h.id === habitId); if (idx === -1) return;
-  const [removedHabit] = state.habits.splice(idx, 1);
-  saveState(); render();
-  if (navigator.vibrate) navigator.vibrate([12, 30, 12]);
-  showToast(`"${removedHabit.name}" eliminado`, 4500, 'Deshacer', () => {
-    const restoreIdx = Math.min(idx, state.habits.length);
-    state.habits.splice(restoreIdx, 0, removedHabit);
+  
+  animateRemoval(habitId, () => {
+    const [removedHabit] = state.habits.splice(idx, 1);
     saveState(); render();
-    showToast('Hábito restaurado');
+    if (navigator.vibrate) navigator.vibrate([12, 30, 12]);
+    showToast(`"${removedHabit.name}" eliminado`, 4500, 'Deshacer', () => {
+      const restoreIdx = Math.min(idx, state.habits.length);
+      state.habits.splice(restoreIdx, 0, removedHabit);
+      saveState(); render();
+      showToast('Hábito restaurado');
+    });
   });
 }
 
@@ -1165,8 +1243,10 @@ function toggleArchiveHabitFromModal() {
   const habit = state.habits.find(h => h.id === editingHabitId); if (!habit) return;
   const action = habit.archived ? 'desarchivar' : 'archivar';
   showConfirm(`¿Quieres ${action} el hábito "${habit.name}"?`, () => {
-      habit.archived = !habit.archived;
-      saveState(); render(); closeHabitModal();
+      animateRemoval(habit.id, () => {
+        habit.archived = !habit.archived;
+        saveState(); render(); closeHabitModal();
+      });
   }, { title: habit.archived ? 'Desarchivar' : 'Archivar', okLabel: 'Aceptar', danger: false });
 }
 
