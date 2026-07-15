@@ -60,18 +60,16 @@
 
   main{ flex:1; padding: 10px 20px 0; display:flex; flex-direction:column; gap:12px; }
   
-  .category-header { font-family: 'Space Mono', monospace; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: 16px 0 2px 4px; letter-spacing: 0.05em; font-weight: 700;}
+  .category-header-row { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 2px 4px; }
+  .category-header { font-family: 'Space Mono', monospace; font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 700; margin: 0;}
+  .btn-check-routine { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; padding: 6px 10px; font-size: 10px; cursor: pointer; text-transform: uppercase; font-family: 'Space Mono', monospace; font-weight: 700; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
+  .btn-check-routine:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
-  /* Swipe-to-action: envoltorio que recorta y aloja los botones bajo la tarjeta */
+  /* Swipe-to-action */
   .habit-card-wrap{ position:relative; border-radius: var(--radius); overflow:hidden; transition: transform 0.22s ease, opacity 0.3s ease, height 0.3s ease, margin 0.3s ease; }
   .habit-card-wrap.collapsing { height: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; opacity: 0; pointer-events: none; }
   .habit-card-wrap.reorder-lifted{ transition:none; z-index:60; }
-  .swipe-actions{ position:absolute; top:0; right:0; bottom:0; display:flex; align-items:stretch; }
-  .swipe-action{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; width:74px; border:none; font-family:'Work Sans',sans-serif; font-size:10.5px; font-weight:600; color:#fff; cursor:pointer; letter-spacing:.01em; -webkit-tap-highlight-color:transparent; }
-  .swipe-action .icon{ font-size:18px; line-height:1; }
-  .swipe-action.archive{ background: #6b7c72; }
-  .swipe-action.delete{ background: var(--danger); }
-  body.light-theme .swipe-action.archive{ background:#8a988f; }
+  .swipe-action-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-between; border-radius: var(--radius); background: var(--surface-2); transition: background-color 0.2s ease; overflow: hidden; }
 
   .habit-card{ background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding: 14px 14px 12px; position: relative; transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s; touch-action: pan-y; will-change: transform; }
   .habit-card.swiping{ transition: none; }
@@ -82,11 +80,15 @@
   .habit-name{ font-family:'Work Sans',sans-serif; font-weight:600; font-size:15px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .habit-streak{ font-family:'Space Mono',monospace; font-size:11px; color:var(--accent); margin-top:2px; display:flex; align-items:center; gap:4px; }
   .habit-streak.zero{ color: var(--text-muted); }
-  .habit-actions{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
-  .btn-more{ background:transparent; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:6px 4px; line-height:1; }
+  .habit-actions{ display:flex; align-items:center; gap:4px; flex-shrink:0; }
+  
+  .btn-more{ background:transparent; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:6px 4px; line-height:1; transition: 0.2s; }
   .btn-more:hover{ color:var(--accent); }
+  .quick-note-btn { background: transparent; border: none; cursor: pointer; font-size: 16px; padding: 6px 4px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: 0.2s; line-height: 1; filter: grayscale(1); opacity: 0.6; }
+  .quick-note-btn:hover { color: var(--text); filter: grayscale(0); opacity: 1; }
+  .quick-note-btn.has-note { color: var(--accent); filter: grayscale(0); opacity: 1; }
 
-  .check-today{ width:38px; height:38px; border-radius:50%; border:2px solid var(--border); background:var(--surface-2); color:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; transition: all .2s; flex-shrink:0; font-size:16px; overflow:hidden;}
+  .check-today{ width:38px; height:38px; border-radius:50%; border:2px solid var(--border); background:var(--surface-2); color:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; transition: all .2s; flex-shrink:0; font-size:16px; overflow:hidden; margin-left: 4px; }
   .check-today.done{ background:var(--accent); border-color:var(--accent); color:var(--bg); }
   .check-today.rest{ border-style: dashed; color:var(--text-muted); font-size:14px; background: transparent; }
   .check-today.progress{ color:var(--text); font-size:11px; font-family:'Space Mono', monospace; font-weight:700; line-height:1; }
@@ -233,13 +235,8 @@
       <div class="freq-day" data-day="4">J</div><div class="freq-day" data-day="5">V</div><div class="freq-day" data-day="6">S</div><div class="freq-day" data-day="0">D</div>
     </div>
 
-    <label class="field-label">Momento del día</label>
-    <div class="status-group" id="tod-group" style="margin-bottom:20px;">
-      <button class="status-btn active" id="tod-morning" onclick="selectTimeOfDay('morning')" style="border-color:var(--accent); color:var(--text);">Mañana</button>
-      <button class="status-btn none" id="tod-afternoon" onclick="selectTimeOfDay('afternoon')">Tarde</button>
-      <button class="status-btn none" id="tod-evening" onclick="selectTimeOfDay('evening')">Noche</button>
-      <button class="status-btn none" id="tod-any" onclick="selectTimeOfDay('any')">Cualquiera</button>
-    </div>
+    <label class="field-label">Rutina / Agrupación</label>
+    <input type="text" id="habit-routine" class="field-input" placeholder="Ej. Gimnasio, Mañana, Trabajo..." maxlength="30">
 
     <label class="field-label">Tipo de medición</label>
     <div class="status-group" style="margin-bottom:14px;">
@@ -299,6 +296,17 @@
     <div class="modal-actions" style="margin-top:20px;">
       <button class="btn" onclick="closeTimerModal()">Salir sin guardar</button>
       <button class="btn btn-accent" onclick="completeTimerEarly()">Marcar Completado</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="quick-note-modal">
+  <div class="modal-content" style="max-width: 380px;">
+    <h2 class="modal-title" id="qn-title" style="margin-bottom: 12px;">Nota del día</h2>
+    <textarea id="qn-input" class="field-input" placeholder="Añade contexto, cómo te sentiste..." style="min-height: 80px;"></textarea>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeQuickNoteModal()">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveQuickNote()">Guardar nota</button>
     </div>
   </div>
 </div>
@@ -411,7 +419,6 @@ let activeEmojiCat = 'all';
 let emojiSearchTerm = '';
 let selectedFreq = [0,1,2,3,4,5,6]; 
 let selectedType = 'boolean';
-let selectedTimeOfDay = 'any';
 let showingArchived = false;
 
 let detailHabitId = null;
@@ -421,51 +428,32 @@ let selectedNoteDate = null;
 let activeActionHabitId = null; 
 let activeActionDateStr = null;
 
-// --- 1. Estado y Configuración del Temporizador ---
+// Modal Nota Rápida
+let activeQnHabitId = null;
+let activeQnDateStr = null;
+
+// Temporizador
 let timerSecondsLeft = 0;
 let timerTotalSeconds = 0;
 let isTimerRunning = false;
 let lastTimerTick = 0;
 
-// --- 2. Configuración del Screen Wake Lock ---
 let wakeLock = null;
 async function requestWakeLock() {
-  try {
-    if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
-  } catch (err) { console.log('Wake Lock denegado:', err); }
+  try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } 
+  catch (err) { console.log('Wake Lock denegado:', err); }
 }
-function releaseWakeLock() {
-  if (wakeLock !== null) { wakeLock.release().then(() => wakeLock = null); }
-}
-// Reconectar Wake Lock si el usuario cambia de pestaña y vuelve
-document.addEventListener('visibilitychange', async () => {
-  if (wakeLock !== null && document.visibilityState === 'visible' && isTimerRunning) {
-    await requestWakeLock();
-  }
-});
+function releaseWakeLock() { if (wakeLock !== null) { wakeLock.release().then(() => wakeLock = null); } }
+document.addEventListener('visibilitychange', async () => { if (wakeLock !== null && document.visibilityState === 'visible' && isTimerRunning) await requestWakeLock(); });
 
-// --- 3. Configuración del Web Worker en línea ---
-const workerCode = `
-  let int; 
-  self.onmessage = e => { 
-    if(e.data === 'start') int = setInterval(() => postMessage('tick'), 200); 
-    else clearInterval(int); 
-  }
-`;
+const workerCode = `let int; self.onmessage = e => { if(e.data === 'start') int = setInterval(() => postMessage('tick'), 200); else clearInterval(int); }`;
 const timerWorker = new Worker(URL.createObjectURL(new Blob([workerCode], {type: 'application/javascript'})));
-
 timerWorker.onmessage = () => {
   if (!isTimerRunning) return;
-  const now = Date.now();
-  const delta = Math.floor((now - lastTimerTick) / 1000);
+  const now = Date.now(); const delta = Math.floor((now - lastTimerTick) / 1000);
   if (delta > 0) {
-    timerSecondsLeft -= delta;
-    lastTimerTick = now;
-    if (timerSecondsLeft <= 0) {
-      timerSecondsLeft = 0; updateTimerDisplay(); completeTimerEarly();
-    } else {
-      updateTimerDisplay();
-    }
+    timerSecondsLeft -= delta; lastTimerTick = now;
+    if (timerSecondsLeft <= 0) { timerSecondsLeft = 0; updateTimerDisplay(); completeTimerEarly(); } else { updateTimerDisplay(); }
   }
 };
 
@@ -473,7 +461,7 @@ function uid(){ return Math.random().toString(36).slice(2,9); }
 function getLocalDateStr(date) { const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000); return d.toISOString().split('T')[0]; }
 function addDays(dateStr, n) { const d = new Date(dateStr + 'T00:00:00'); d.setDate(d.getDate() + n); return getLocalDateStr(d); }
 
-// ==== ESTADO Y MIGRACIÓN ====
+// MIGRACIÓN Y ESTADO
 function defaultState() { return { habits: [] }; }
 function loadState() {
   try {
@@ -485,8 +473,15 @@ function loadState() {
       if (!h.notes) h.notes = {};
       if (!h.frequency) h.frequency = [0,1,2,3,4,5,6]; 
       if (!h.type) h.type = 'boolean'; 
-      if (!h.timeOfDay) h.timeOfDay = 'any'; 
       if (typeof h.archived === 'undefined') h.archived = false; 
+      
+      // Migración de timeOfDay a routine
+      if (!h.routine) {
+        if (h.timeOfDay === 'morning') h.routine = 'Mañana';
+        else if (h.timeOfDay === 'afternoon') h.routine = 'Tarde';
+        else if (h.timeOfDay === 'evening') h.routine = 'Noche';
+        else h.routine = 'General';
+      }
       
       Object.keys(h.completions).forEach(date => {
         if (h.completions[date] === true) h.completions[date] = 'done';
@@ -503,7 +498,6 @@ function isHabitDone(habit, val) {
   return false;
 }
 
-// ==== TEMA ====
 function updateThemeMetaColor(theme) { document.getElementById('meta-theme-color').setAttribute("content", theme === 'light' ? "#f4f6f4" : "#0f1a14"); }
 function initTheme() {
   const savedTheme = localStorage.getItem(THEME_KEY);
@@ -525,7 +519,6 @@ function updateThemeIcon() {
   else icon.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
 }
 
-// ==== UTILIDADES ====
 function openSettingsModal() { document.getElementById('settings-modal').classList.add('active'); }
 function closeSettingsModal() { document.getElementById('settings-modal').classList.remove('active'); }
 function exportData() {
@@ -553,37 +546,26 @@ function showConfirm(msg, onConfirm, opts = {}) {
 function closeConfirm() { document.getElementById('confirm-modal').classList.remove('active'); confirmCallback = null; }
 document.getElementById('confirm-cancel-btn').addEventListener('click', closeConfirm);
 document.getElementById('confirm-ok-btn').addEventListener('click', () => { const cb = confirmCallback; closeConfirm(); if (cb) cb(); });
-let toastTimeout = null;
-let toastActionCallback = null;
+
+let toastTimeout = null; let toastActionCallback = null;
 function flagInvalidField(id, message) {
-  const el = document.getElementById(id);
-  el.classList.remove('field-error'); void el.offsetWidth; 
-  el.classList.add('field-error'); el.focus();
-  showToast(message, 2600);
+  const el = document.getElementById(id); el.classList.remove('field-error'); void el.offsetWidth; 
+  el.classList.add('field-error'); el.focus(); showToast(message, 2600);
   setTimeout(() => el.classList.remove('field-error'), 900);
 }
 function showToast(msg, dur = 2200, actionLabel = null, actionCallback = null) {
-  clearTimeout(toastTimeout);
-  document.getElementById('toast-message').textContent = msg;
-  const actionBtn = document.getElementById('toast-action-btn');
-  toastActionCallback = actionCallback;
+  clearTimeout(toastTimeout); document.getElementById('toast-message').textContent = msg;
+  const actionBtn = document.getElementById('toast-action-btn'); toastActionCallback = actionCallback;
   if (actionLabel && actionCallback) { actionBtn.textContent = actionLabel; actionBtn.style.display = 'block'; }
   else { actionBtn.style.display = 'none'; }
   document.getElementById('toast').classList.add('active');
   toastTimeout = setTimeout(() => { document.getElementById('toast').classList.remove('active'); toastActionCallback = null; }, dur);
 }
-document.getElementById('toast-action-btn').addEventListener('click', () => {
-  const cb = toastActionCallback;
-  clearTimeout(toastTimeout);
-  document.getElementById('toast').classList.remove('active');
-  toastActionCallback = null;
-  if (cb) cb();
-});
+document.getElementById('toast-action-btn').addEventListener('click', () => { const cb = toastActionCallback; clearTimeout(toastTimeout); document.getElementById('toast').classList.remove('active'); toastActionCallback = null; if (cb) cb(); });
 document.getElementById('emoji-search').addEventListener('input', (e) => { emojiSearchTerm = e.target.value; buildEmojiGrid(); });
 function confirmResetAll() { showConfirm('¿Borrar todos los datos?', () => { localStorage.removeItem(STORAGE_KEY); closeSettingsModal(); loadState(); showToast('Datos borrados.'); }, { title: 'Reiniciar aplicación', okLabel: 'Borrar todo', danger: true }); }
 function toggleArchivedView() { showingArchived = !showingArchived; render(); }
 
-// ==== CÁLCULOS ====
 function getStreak(habit) {
   let streak = 0; let cursor = getLocalDateStr(new Date()); const todayStr = cursor;
   while (cursor >= habit.createdAt) {
@@ -617,39 +599,43 @@ function checkAllDoneToday() {
   const todayStr = getLocalDateStr(new Date()); const todayDow = new Date().getDay();
   const requiredHabits = activeHabits.filter(h => h.frequency.includes(todayDow));
   if (requiredHabits.length === 0) return;
-
   const allDone = requiredHabits.every(h => isHabitDone(h, h.completions[todayStr]) || h.completions[todayStr] === 'skip');
   if (allDone && typeof confetti === 'function') { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#e8b64a', '#d9704f', '#8ea092', '#ffffff'] }); }
 }
 
-// ==== RENDER PRINCIPAL ====
 function render() { renderHeaderDate(); renderRing(); renderHabitList(); }
 function renderHeaderDate() { document.getElementById('today-eyebrow').textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase(); }
 function renderRing() {
   const ringArea = document.getElementById('ring-area');
   const activeHabits = state.habits.filter(h => !h.archived);
-  
   if (activeHabits.length === 0) { 
-    if(state.habits.length > 0) {
-      ringArea.innerHTML = `<div class="empty-hero" style="padding: 10px 24px 0;"><p>No tienes hábitos activos ahora mismo.</p></div>`;
-    } else {
-      ringArea.innerHTML = `<div class="empty-hero"><div class="empty-hero-icon">🌱</div><h2>Aún no hay hábitos</h2><p>Crea tu primer hábito y empieza a construir tu rutina diaria.<br>Podrás arrastrarlos para ordenar tus prioridades.</p></div>`;
-    }
+    if(state.habits.length > 0) ringArea.innerHTML = `<div class="empty-hero" style="padding: 10px 24px 0;"><p>No tienes hábitos activos ahora mismo.</p></div>`;
+    else ringArea.innerHTML = `<div class="empty-hero"><div class="empty-hero-icon">🌱</div><h2>Aún no hay hábitos</h2><p>Crea tu primer hábito y empieza a construir tu rutina diaria.<br>Podrás arrastrarlos para ordenar tus prioridades.</p></div>`;
     return; 
   }
-  
   const todayStr = getLocalDateStr(new Date()); const todayDow = new Date().getDay();
   let toHappen = 0; let done = 0;
-  
-  activeHabits.forEach(h => {
-    const isRequired = h.frequency.includes(todayDow);
-    const val = h.completions[todayStr];
-    if (isRequired || isHabitDone(h, val)) toHappen++;
-    if (isHabitDone(h, val)) done++;
-  });
-
+  activeHabits.forEach(h => { const isRequired = h.frequency.includes(todayDow); const val = h.completions[todayStr]; if (isRequired || isHabitDone(h, val)) toHappen++; if (isHabitDone(h, val)) done++; });
   const pct = toHappen > 0 ? Math.round((done / toHappen) * 100) : 100;
   ringArea.innerHTML = `<div class="ring-wrap"><div class="progress-ring" style="--pct:${pct}"><div class="progress-ring-inner"><div class="progress-ring-value">${done}<span class="progress-ring-sep">/</span>${toHappen}</div><div class="progress-ring-label">hábitos hoy</div></div></div></div>`;
+}
+
+function completeRoutine(routineName, dateStr) {
+  const activeHabits = state.habits.filter(h => !h.archived && h.routine === routineName);
+  let modified = false;
+  activeHabits.forEach(habit => {
+    const currentVal = habit.completions[dateStr];
+    if (!isHabitDone(habit, currentVal)) {
+      if (habit.type === 'numeric' && habit.target) habit.completions[dateStr] = habit.target;
+      else habit.completions[dateStr] = 'done';
+      modified = true;
+    }
+  });
+  if (modified) {
+    saveState(); render();
+    if (dateStr === getLocalDateStr(new Date())) checkAllDoneToday();
+    showToast(`Rutina completada`);
+  } else { showToast(`La rutina ya estaba completa`); }
 }
 
 function renderHabitList() {
@@ -659,68 +645,53 @@ function renderHabitList() {
 
   if (showingArchived) {
     const archivedHabits = state.habits.filter(h => h.archived);
-    list.innerHTML = `<div class="category-header" style="color:var(--text); font-size:14px; margin-bottom: 12px; letter-spacing:0;">📦 Modo Archivados</div>`;
-    
+    list.innerHTML = `<div class="category-header-row"><div class="category-header" style="color:var(--text); font-size:14px; letter-spacing:0;">📦 Modo Archivados</div></div>`;
     archivedHabits.forEach(habit => renderHabitCard(habit, list, todayStr, todayDow));
-    
-    const backBtn = document.createElement('button');
-    backBtn.className = 'menu-btn'; backBtn.style.marginTop = '10px';
-    backBtn.innerHTML = '← Volver a hábitos activos';
-    backBtn.onclick = toggleArchivedView;
-    list.appendChild(backBtn);
-    return;
+    const backBtn = document.createElement('button'); backBtn.className = 'menu-btn'; backBtn.style.marginTop = '10px'; backBtn.innerHTML = '← Volver a activos'; backBtn.onclick = toggleArchivedView;
+    list.appendChild(backBtn); return;
   }
 
   const activeHabits = state.habits.filter(h => !h.archived);
-  const categories = [
-    { id: 'morning', label: '🌅 Mañana' },
-    { id: 'afternoon', label: '☀️ Tarde' },
-    { id: 'evening', label: '🌙 Noche' },
-    { id: 'any', label: '✨ Cualquier momento' }
-  ];
+  const routinesMap = {};
+  activeHabits.forEach(h => {
+    const r = (h.routine || 'General').trim();
+    if (!routinesMap[r]) routinesMap[r] = [];
+    routinesMap[r].push(h);
+  });
 
-  categories.forEach(cat => {
-    const catHabits = activeHabits.filter(h => h.timeOfDay === cat.id);
+  Object.keys(routinesMap).forEach(routineName => {
+    const catHabits = routinesMap[routineName];
     if (catHabits.length > 0) {
-      const header = document.createElement('div');
-      header.className = 'category-header';
-      header.textContent = cat.label;
-      list.appendChild(header);
+      const headerRow = document.createElement('div'); headerRow.className = 'category-header-row';
+      const header = document.createElement('div'); header.className = 'category-header'; header.textContent = routineName;
+      headerRow.appendChild(header);
+      
+      if (catHabits.length > 1) {
+        const checkAllBtn = document.createElement('button'); checkAllBtn.className = 'btn-check-routine';
+        checkAllBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Completar';
+        checkAllBtn.onclick = () => completeRoutine(routineName, todayStr);
+        headerRow.appendChild(checkAllBtn);
+      }
+      
+      list.appendChild(headerRow);
       catHabits.forEach(habit => renderHabitCard(habit, list, todayStr, todayDow));
     }
   });
 
   const archivedCount = state.habits.filter(h => h.archived).length;
   if (archivedCount > 0) {
-    const archBtn = document.createElement('button');
-    archBtn.className = 'menu-btn'; archBtn.style.marginTop = '20px';
-    archBtn.innerHTML = `📦 Ver hábitos archivados (${archivedCount})`;
-    archBtn.onclick = toggleArchivedView;
-    list.appendChild(archBtn);
+    const archBtn = document.createElement('button'); archBtn.className = 'menu-btn'; archBtn.style.marginTop = '20px'; archBtn.innerHTML = `📦 Ver hábitos archivados (${archivedCount})`; archBtn.onclick = toggleArchivedView; list.appendChild(archBtn);
   }
 }
 
 function renderHabitCard(habit, listContainer, todayStr, todayDow) {
   const wrap = document.createElement('div'); wrap.className = 'habit-card-wrap';
-
-  const swipeActions = document.createElement('div'); swipeActions.className = 'swipe-actions';
-  const archiveBtn = document.createElement('button');
-  archiveBtn.className = 'swipe-action archive';
-  archiveBtn.innerHTML = `<span class="icon">${habit.archived ? '📤' : '📦'}</span><span>${habit.archived ? 'Restaurar' : 'Archivar'}</span>`;
-  archiveBtn.onclick = () => swipeToggleArchive(habit.id);
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'swipe-action delete';
-  deleteBtn.innerHTML = `<span class="icon">🗑️</span><span>Eliminar</span>`;
-  deleteBtn.onclick = () => swipeDeleteHabit(habit.id);
-  swipeActions.append(archiveBtn, deleteBtn);
+  const swipeActions = document.createElement('div'); swipeActions.className = 'swipe-action-bg';
+  swipeActions.innerHTML = `<div class="swipe-archive-icon" style="position:absolute; left:20px; top:50%; transform:translateY(-50%); font-size:24px; opacity:0; transition:opacity 0.2s;">${habit.archived ? '📤' : '📦'}</div><div class="swipe-delete-icon" style="position:absolute; right:20px; top:50%; transform:translateY(-50%); font-size:24px; opacity:0; transition:opacity 0.2s;">🗑️</div>`;
   wrap.appendChild(swipeActions);
 
   const card = document.createElement('div'); card.className = 'habit-card'; card.dataset.id = habit.id;
-
-  const streak = getStreak(habit);
-  const valToday = habit.completions[todayStr];
-  const isDone = isHabitDone(habit, valToday);
-  const isRequired = habit.frequency.includes(todayDow);
+  const streak = getStreak(habit); const valToday = habit.completions[todayStr]; const isDone = isHabitDone(habit, valToday); const isRequired = habit.frequency.includes(todayDow);
 
   const top = document.createElement('div'); top.className = 'habit-top';
   top.innerHTML = `<span class="habit-emoji">${habit.emoji}</span>`;
@@ -731,6 +702,15 @@ function renderHabitCard(habit, listContainer, todayStr, todayDow) {
   top.appendChild(nameWrap);
 
   const actions = document.createElement('div'); actions.className = 'habit-actions';
+  
+  // Botón Nota Rápida
+  const noteBtn = document.createElement('button'); 
+  const hasNoteToday = habit.notes && habit.notes[todayStr] && habit.notes[todayStr].trim() !== '';
+  noteBtn.className = 'quick-note-btn' + (hasNoteToday ? ' has-note' : '');
+  noteBtn.innerHTML = '📝'; noteBtn.title = 'Añadir nota hoy';
+  noteBtn.onclick = () => openQuickNoteModal(habit.id);
+  
+  // Botón Más
   const moreBtn = document.createElement('button'); moreBtn.className = 'btn-more'; moreBtn.innerHTML = '⋯';
   moreBtn.onclick = () => openHabitModal(habit.id);
   
@@ -743,256 +723,116 @@ function renderHabitCard(habit, listContainer, todayStr, todayDow) {
     else if (habit.type === 'timer') { checkBtn.className = 'check-today progress'; checkBtn.innerHTML = '▶'; } 
     else { checkBtn.className = 'check-today'; checkBtn.innerHTML = ''; }
   }
-  
   checkBtn.onclick = () => handleActionClick(habit.id, todayStr);
-  actions.append(moreBtn, checkBtn); top.appendChild(actions);
+  
+  actions.append(noteBtn, moreBtn, checkBtn); top.appendChild(actions);
   card.appendChild(top); card.appendChild(renderChain(habit, todayStr));
   wrap.appendChild(card); listContainer.appendChild(wrap);
-
-  if (!showingArchived) attachCardGestures(card, wrap, swipeActions, habit.id);
+  attachCardGestures(card, wrap, swipeActions, habit.id, habit.archived);
 }
 
-// ==== GESTOS TÁCTILES NATIVOS ====
-let openSwipeWrap = null;  
-let reorderState = null;   
-const LONG_PRESS_MS = 420;
-const MOVE_DECIDE_PX = 8;
+// GESTOS TÁCTILES
+let openSwipeWrap = null; let reorderState = null; const LONG_PRESS_MS = 420; const MOVE_DECIDE_PX = 8;
+function closeOpenSwipe() { if (openSwipeWrap) { const openCard = openSwipeWrap.querySelector('.habit-card'); if (openCard) openCard.style.transform = 'translateX(0)'; openSwipeWrap.classList.remove('swipe-open'); openSwipeWrap = null; } }
 
-function closeOpenSwipe() {
-  if (openSwipeWrap) {
-    const openCard = openSwipeWrap.querySelector('.habit-card');
-    if (openCard) openCard.style.transform = 'translateX(0)';
-    openSwipeWrap.classList.remove('swipe-open');
-    openSwipeWrap = null;
-  }
-}
-
-function attachCardGestures(card, wrap, swipeActionsEl, habitId) {
-  let startX = 0, startY = 0, currentX = 0, mode = null, longPressTimer = null, suppressClick = false;
-  const actionsWidth = () => swipeActionsEl.offsetWidth || 148;
-  const OPEN_THRESHOLD = 0.35;
+function attachCardGestures(card, wrap, swipeActionsEl, habitId, isArchived = false) {
+  let startX = 0, startY = 0, currentX = 0, mode = null, longPressTimer = null, suppressClick = false; const SWIPE_THRESHOLD = 90; 
   const cancelLongPress = () => { clearTimeout(longPressTimer); longPressTimer = null; };
+  const bgEl = wrap.querySelector('.swipe-action-bg'); const iconArchive = wrap.querySelector('.swipe-archive-icon'); const iconDelete = wrap.querySelector('.swipe-delete-icon');
 
   card.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) return;
-    closeOpenSwipe();
-    const t = e.touches[0];
-    startX = t.clientX; startY = t.clientY; currentX = 0; mode = null;
-    longPressTimer = setTimeout(() => {
-      if (mode === null) { mode = 'reorder'; startReorder(wrap, card, t.clientY); }
-    }, LONG_PRESS_MS);
+    closeOpenSwipe(); const t = e.touches[0]; startX = t.clientX; startY = t.clientY; currentX = 0; mode = null;
+    longPressTimer = setTimeout(() => { if (mode === null && !isArchived) { mode = 'reorder'; startReorder(wrap, card, t.clientY); } }, LONG_PRESS_MS);
   }, { passive: true });
 
   card.addEventListener('touchmove', (e) => {
-    const t = e.touches[0];
-    const dx = t.clientX - startX; const dy = t.clientY - startY;
-
+    const t = e.touches[0]; const dx = t.clientX - startX; const dy = t.clientY - startY;
     if (mode === 'reorder') { e.preventDefault(); updateReorder(t.clientY); return; }
     if (mode === 'swipe') {
-      e.preventDefault();
-      const wasOpen = wrap.classList.contains('swipe-open');
-      const base = wasOpen ? -actionsWidth() : 0;
-      currentX = Math.max(-actionsWidth() - 12, Math.min(0, base + dx));
-      card.style.transform = `translateX(${currentX}px)`;
+      e.preventDefault(); currentX = dx; card.style.transform = `translateX(${currentX}px)`;
+      if (currentX > 0) { bgEl.style.backgroundColor = currentX > SWIPE_THRESHOLD ? (isArchived ? '#5c8a6c' : '#6b7c72') : 'var(--surface-2)'; iconArchive.style.opacity = currentX > SWIPE_THRESHOLD ? '1' : '0.5'; iconDelete.style.opacity = '0'; } 
+      else if (currentX < 0) { bgEl.style.backgroundColor = currentX < -SWIPE_THRESHOLD ? 'var(--danger)' : 'var(--surface-2)'; iconDelete.style.opacity = currentX < -SWIPE_THRESHOLD ? '1' : '0.5'; iconArchive.style.opacity = '0'; }
       return;
     }
     if (mode === 'scroll') return; 
-
-    if (Math.abs(dx) > MOVE_DECIDE_PX || Math.abs(dy) > MOVE_DECIDE_PX) {
-      cancelLongPress();
-      mode = Math.abs(dx) > Math.abs(dy) ? 'swipe' : 'scroll';
-      if (mode === 'swipe') card.classList.add('swiping');
-    }
+    if (Math.abs(dx) > MOVE_DECIDE_PX || Math.abs(dy) > MOVE_DECIDE_PX) { cancelLongPress(); mode = Math.abs(dx) > Math.abs(dy) ? 'swipe' : 'scroll'; if (mode === 'swipe') card.classList.add('swiping'); }
   }, { passive: false });
 
   const endGesture = () => {
     cancelLongPress();
-    if (mode === 'reorder') {
-      endReorder();
-    } else if (mode === 'swipe') {
+    if (mode === 'reorder') { endReorder(); } 
+    else if (mode === 'swipe') {
       card.classList.remove('swiping');
-      const width = actionsWidth();
-      if (currentX < -width * OPEN_THRESHOLD) {
-        card.style.transform = `translateX(-${width}px)`;
-        wrap.classList.add('swipe-open'); openSwipeWrap = wrap;
-        if (navigator.vibrate) navigator.vibrate(8);
-      } else {
-        card.style.transform = 'translateX(0)';
-      }
+      if (currentX > SWIPE_THRESHOLD) { card.style.transform = `translateX(100%)`; if (navigator.vibrate) navigator.vibrate(10); setTimeout(() => swipeToggleArchive(habitId), 200); } 
+      else if (currentX < -SWIPE_THRESHOLD) { card.style.transform = `translateX(-100%)`; if (navigator.vibrate) navigator.vibrate(10); setTimeout(() => swipeDeleteHabit(habitId), 200); } 
+      else { card.style.transform = 'translateX(0)'; if (bgEl) { bgEl.style.backgroundColor = 'var(--surface-2)'; iconArchive.style.opacity = '0'; iconDelete.style.opacity = '0'; } }
       if (Math.abs(currentX) > 10) { suppressClick = true; setTimeout(() => suppressClick = false, 250); }
     }
     mode = null;
   };
-  card.addEventListener('touchend', endGesture);
-  card.addEventListener('touchcancel', endGesture);
-
-  card.addEventListener('click', (e) => { if (suppressClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+  card.addEventListener('touchend', endGesture); card.addEventListener('touchcancel', endGesture); card.addEventListener('click', (e) => { if (suppressClick) { e.stopPropagation(); e.preventDefault(); } }, true);
 }
 
-// ==== ANIMACIONES DE ELIMINACIÓN/ARCHIVO ====
 function animateRemoval(habitId, callback) {
   const cardElement = document.querySelector(`.habit-card[data-id="${habitId}"]`);
   if (!cardElement) { callback(); return; }
-  
   const cardWrap = cardElement.closest('.habit-card-wrap');
-  if (cardWrap) {
-    cardWrap.style.height = cardWrap.offsetHeight + 'px'; 
-    void cardWrap.offsetHeight; 
-    cardWrap.classList.add('collapsing');
-    setTimeout(callback, 280); 
-  } else {
-    callback();
-  }
+  if (cardWrap) { cardWrap.style.height = cardWrap.offsetHeight + 'px'; void cardWrap.offsetHeight; cardWrap.classList.add('collapsing'); setTimeout(callback, 280); } 
+  else { callback(); }
 }
-
-function swipeToggleArchive(habitId) {
-  closeOpenSwipe();
-  animateRemoval(habitId, () => {
-    const habit = state.habits.find(h => h.id === habitId); if (!habit) return;
-    habit.archived = !habit.archived;
-    saveState(); render();
-    showToast(habit.archived ? 'Hábito archivado' : 'Hábito restaurado');
-  });
-}
-
-function swipeDeleteHabit(habitId) {
-  closeOpenSwipe();
-  deleteHabitDirect(habitId);
-}
+function swipeToggleArchive(habitId) { closeOpenSwipe(); animateRemoval(habitId, () => { const habit = state.habits.find(h => h.id === habitId); if (!habit) return; habit.archived = !habit.archived; saveState(); render(); showToast(habit.archived ? 'Hábito archivado' : 'Hábito restaurado'); }); }
+function swipeDeleteHabit(habitId) { closeOpenSwipe(); deleteHabitDirect(habitId); }
 
 const SWIPE_HINT_KEY = 'cadena-swipe-hint-v1';
 function maybeShowSwipeHint() {
   try {
-    if (localStorage.getItem(SWIPE_HINT_KEY)) return;
-    if (showingArchived) return;
-    const firstWrap = document.querySelector('#habit-list .habit-card-wrap');
-    if (!firstWrap) return;
-    const card = firstWrap.querySelector('.habit-card');
-    if (!card) return;
+    if (localStorage.getItem(SWIPE_HINT_KEY)) return; if (showingArchived) return;
+    const firstWrap = document.querySelector('#habit-list .habit-card-wrap'); if (!firstWrap) return;
+    const card = firstWrap.querySelector('.habit-card'); if (!card) return;
     localStorage.setItem(SWIPE_HINT_KEY, '1');
-
-    let cancelled = false;
-    card.addEventListener('touchstart', () => { cancelled = true; card.style.transition = ''; card.style.transform = 'translateX(0)'; }, { once: true, passive: true });
-
-    setTimeout(() => {
-      if (cancelled) return;
-      card.style.transition = 'transform 0.5s cubic-bezier(.22,1,.36,1)';
-      card.style.transform = 'translateX(-48px)';
-      setTimeout(() => {
-        if (cancelled) return;
-        card.style.transform = 'translateX(0)';
-        setTimeout(() => { if (!cancelled) card.style.transition = ''; }, 500);
-      }, 620);
-    }, 750);
+    let cancelled = false; card.addEventListener('touchstart', () => { cancelled = true; card.style.transition = ''; card.style.transform = 'translateX(0)'; }, { once: true, passive: true });
+    setTimeout(() => { if (cancelled) return; card.style.transition = 'transform 0.5s cubic-bezier(.22,1,.36,1)'; card.style.transform = 'translateX(-48px)'; setTimeout(() => { if (cancelled) return; card.style.transform = 'translateX(0)'; setTimeout(() => { if (!cancelled) card.style.transition = ''; }, 500); }, 620); }, 750);
   } catch (e) {}
 }
 
 function startReorder(wrap, card, clientY) {
-  const listEl = document.getElementById('habit-list');
-  const wraps = [...listEl.querySelectorAll('.habit-card-wrap')];
-  const originalIndex = wraps.indexOf(wrap);
-  if (originalIndex === -1) return;
-  const rect = wrap.getBoundingClientRect();
-  const gap = 12; 
+  const listEl = document.getElementById('habit-list'); const wraps = [...listEl.querySelectorAll('.habit-card-wrap')]; const originalIndex = wraps.indexOf(wrap); if (originalIndex === -1) return;
+  const rect = wrap.getBoundingClientRect(); const gap = 12; 
   reorderState = { wraps, originalIndex, currentIndex: originalIndex, itemHeight: rect.height + gap, startClientY: clientY, wrap, card };
-  card.style.transform = '';
-  wrap.style.overflow = 'visible'; 
-  wrap.classList.add('reorder-lifted');
-  card.classList.add('lifted');
-  wrap.style.zIndex = '60';
-  if (navigator.vibrate) navigator.vibrate(12);
+  card.style.transform = ''; wrap.style.overflow = 'visible'; wrap.classList.add('reorder-lifted'); card.classList.add('lifted'); wrap.style.zIndex = '60'; if (navigator.vibrate) navigator.vibrate(12);
 }
-
 function updateReorder(clientY) {
-  if (!reorderState) return;
-  const rs = reorderState;
-  const dy = clientY - rs.startClientY;
-  rs.wrap.style.transform = `translateY(${dy}px)`;
-
-  let idx = rs.originalIndex + Math.round(dy / rs.itemHeight);
-  idx = Math.max(0, Math.min(rs.wraps.length - 1, idx));
-  if (idx !== rs.currentIndex) {
-    rs.wraps.forEach((w, i) => {
-      if (w === rs.wrap) return;
-      let shift = 0;
-      if (idx > rs.originalIndex) { if (i > rs.originalIndex && i <= idx) shift = -1; }
-      else if (idx < rs.originalIndex) { if (i >= idx && i < rs.originalIndex) shift = 1; }
-      w.style.transform = shift !== 0 ? `translateY(${shift * rs.itemHeight}px)` : '';
-    });
-    rs.currentIndex = idx;
-  }
+  if (!reorderState) return; const rs = reorderState; const dy = clientY - rs.startClientY; rs.wrap.style.transform = `translateY(${dy}px)`;
+  let idx = rs.originalIndex + Math.round(dy / rs.itemHeight); idx = Math.max(0, Math.min(rs.wraps.length - 1, idx));
+  if (idx !== rs.currentIndex) { rs.wraps.forEach((w, i) => { if (w === rs.wrap) return; let shift = 0; if (idx > rs.originalIndex) { if (i > rs.originalIndex && i <= idx) shift = -1; } else if (idx < rs.originalIndex) { if (i >= idx && i < rs.originalIndex) shift = 1; } w.style.transform = shift !== 0 ? `translateY(${shift * rs.itemHeight}px)` : ''; }); rs.currentIndex = idx; }
 }
-
 function endReorder() {
-  if (!reorderState) return;
-  const rs = reorderState;
-  const finalIndex = rs.currentIndex;
-
-  rs.wraps.forEach(w => { w.style.transform = ''; });
-  rs.wrap.classList.remove('reorder-lifted'); rs.card.classList.remove('lifted');
-  rs.wrap.style.zIndex = ''; rs.wrap.style.overflow = '';
-
+  if (!reorderState) return; const rs = reorderState; const finalIndex = rs.currentIndex;
+  rs.wraps.forEach(w => { w.style.transform = ''; }); rs.wrap.classList.remove('reorder-lifted'); rs.card.classList.remove('lifted'); rs.wrap.style.zIndex = ''; rs.wrap.style.overflow = '';
   if (finalIndex !== rs.originalIndex) {
-    const newOrderIds = rs.wraps.map(w => w.dataset.id);
-    const [movedId] = newOrderIds.splice(rs.originalIndex, 1);
-    newOrderIds.splice(finalIndex, 0, movedId);
-
-    const habit = state.habits.find(h => h.id === movedId);
-    const neighborId = newOrderIds[finalIndex - 1] || newOrderIds[finalIndex + 1];
-    if (habit && neighborId) {
-      const neighborHabit = state.habits.find(h => h.id === neighborId);
-      if (neighborHabit) habit.timeOfDay = neighborHabit.timeOfDay;
-    }
-
-    const archived = state.habits.filter(h => h.archived);
-    const activeMap = new Map(state.habits.filter(h => !h.archived).map(h => [h.id, h]));
-    const reorderedActive = newOrderIds.map(id => activeMap.get(id)).filter(Boolean);
-    state.habits = [...reorderedActive, ...archived];
-
-    saveState();
-    if (navigator.vibrate) navigator.vibrate(6);
+    const newOrderIds = rs.wraps.map(w => w.dataset.id); const [movedId] = newOrderIds.splice(rs.originalIndex, 1); newOrderIds.splice(finalIndex, 0, movedId);
+    const habit = state.habits.find(h => h.id === movedId); const neighborId = newOrderIds[finalIndex - 1] || newOrderIds[finalIndex + 1];
+    if (habit && neighborId) { const neighborHabit = state.habits.find(h => h.id === neighborId); if (neighborHabit) habit.routine = neighborHabit.routine; }
+    const archived = state.habits.filter(h => h.archived); const activeMap = new Map(state.habits.filter(h => !h.archived).map(h => [h.id, h]));
+    const reorderedActive = newOrderIds.map(id => activeMap.get(id)).filter(Boolean); state.habits = [...reorderedActive, ...archived];
+    saveState(); if (navigator.vibrate) navigator.vibrate(6);
   }
-  render();
-  reorderState = null;
+  render(); reorderState = null;
 }
 
 function renderChain(habit, todayStr) {
   const days = []; for (let i = CHAIN_DAYS - 1; i >= 0; i--) days.push(addDays(todayStr, -i));
-  const wrap = document.createElement('div'); wrap.className = 'chain-row';
-  const dayNames = ['D','L','M','X','J','V','S'];
-
+  const wrap = document.createElement('div'); wrap.className = 'chain-row'; const dayNames = ['D','L','M','X','J','V','S'];
   days.forEach((ds, idx) => {
-    const val = habit.completions[ds];
-    const isToday = ds === todayStr; const isFuture = ds > todayStr;
-    const dow = new Date(ds + 'T00:00:00').getDay();
-    const isRequired = habit.frequency.includes(dow);
-
-    const link = document.createElement('div'); link.className = 'chain-link';
-    const dot = document.createElement('div');
-    
+    const val = habit.completions[ds]; const isToday = ds === todayStr; const isFuture = ds > todayStr; const dow = new Date(ds + 'T00:00:00').getDay(); const isRequired = habit.frequency.includes(dow);
+    const link = document.createElement('div'); link.className = 'chain-link'; const dot = document.createElement('div');
     let dotClass = 'chain-dot'; let dotContent = '';
-    
-    if (isHabitDone(habit, val)) { dotClass += ' done'; }
-    else if (val === 'skip') { dotClass += ' skip'; dotContent = '⏸'; }
-    else if (!isRequired && !isFuture) { dotClass += ' rest'; }
-    else if (habit.type === 'numeric' && typeof val === 'number' && val > 0) { dot.style.background = 'var(--surface-2)'; dot.style.border = '2px solid var(--accent)'; dot.style.color = 'var(--accent)'; }
-    
-    if (isToday) dotClass += ' today';
-    dot.className = dotClass; dot.innerHTML = dotContent;
-    
+    if (isHabitDone(habit, val)) { dotClass += ' done'; } else if (val === 'skip') { dotClass += ' skip'; dotContent = '⏸'; } else if (!isRequired && !isFuture) { dotClass += ' rest'; } else if (habit.type === 'numeric' && typeof val === 'number' && val > 0) { dot.style.background = 'var(--surface-2)'; dot.style.border = '2px solid var(--accent)'; dot.style.color = 'var(--accent)'; }
+    if (isToday) dotClass += ' today'; dot.className = dotClass; dot.innerHTML = dotContent;
     if (!isFuture) dot.onclick = () => handleActionClick(habit.id, ds); else dot.style.opacity = '0.35';
-    
-    const label = document.createElement('div'); label.className = 'chain-day-label'; label.textContent = dayNames[dow];
-    link.append(dot, label); wrap.appendChild(link);
-
-    if (idx < days.length - 1) {
-      const connector = document.createElement('div');
-      const nextVal = habit.completions[days[idx + 1]];
-      if (isHabitDone(habit, val) && isHabitDone(habit, nextVal)) connector.className = 'chain-connector lit';
-      else if (val === 'skip' || nextVal === 'skip') connector.className = 'chain-connector skip';
-      else connector.className = 'chain-connector';
-      wrap.appendChild(connector);
-    }
+    const label = document.createElement('div'); label.className = 'chain-day-label'; label.textContent = dayNames[dow]; link.append(dot, label); wrap.appendChild(link);
+    if (idx < days.length - 1) { const connector = document.createElement('div'); const nextVal = habit.completions[days[idx + 1]]; if (isHabitDone(habit, val) && isHabitDone(habit, nextVal)) connector.className = 'chain-connector lit'; else if (val === 'skip' || nextVal === 'skip') connector.className = 'chain-connector skip'; else connector.className = 'chain-connector'; wrap.appendChild(connector); }
   });
   return wrap;
 }
@@ -1000,42 +840,29 @@ function renderChain(habit, todayStr) {
 function handleActionClick(habitId, dateStr) {
   const habit = state.habits.find(h => h.id === habitId); if (!habit) return;
   const todayStr = getLocalDateStr(new Date()); if (dateStr > todayStr) return;
-  
-  const currentVal = habit.completions[dateStr];
-  const dow = new Date(dateStr + 'T00:00:00').getDay(); const isRequired = habit.frequency.includes(dow);
-  const isModifyingPast = dateStr < todayStr;
-  const isTryingToCompleteRestDay = !isHabitDone(habit, currentVal) && !isRequired;
-
+  const currentVal = habit.completions[dateStr]; const dow = new Date(dateStr + 'T00:00:00').getDay(); const isRequired = habit.frequency.includes(dow);
+  const isModifyingPast = dateStr < todayStr; const isTryingToCompleteRestDay = !isHabitDone(habit, currentVal) && !isRequired;
+  const willUncheckDirectly = isHabitDone(habit, currentVal) && (habit.type !== 'numeric' || currentVal === 'done'); const isUncheckingToday = dateStr === todayStr && willUncheckDirectly;
   activeActionHabitId = habitId; activeActionDateStr = dateStr;
 
   const executeSpecificAction = () => {
-    if (habit.type === 'numeric') {
-      if (currentVal === 'done') toggleCompletionDirect(habitId, dateStr); 
-      else openNumericModal(habit);
-    } else if (habit.type === 'timer') {
-      if (isModifyingPast) { showConfirm('No puedes usar el temporizador para días pasados. ¿Quieres marcarlo como completado manualmente?', () => { toggleCompletionDirect(habitId, dateStr); }, {title: 'Marcar Manualmente', okLabel: 'Completar', danger: false}); } 
-      else { if (currentVal === 'done') toggleCompletionDirect(habitId, dateStr); else openTimerModal(habit); }
-    } else { toggleCompletionDirect(habitId, dateStr); }
+    if (habit.type === 'numeric') { if (currentVal === 'done') toggleCompletionDirect(habitId, dateStr); else openNumericModal(habit); } 
+    else if (habit.type === 'timer') { if (isModifyingPast) { showConfirm('No puedes usar el temporizador para días pasados. ¿Quieres marcarlo como completado manualmente?', () => { toggleCompletionDirect(habitId, dateStr); }, {title: 'Marcar Manualmente', okLabel: 'Completar', danger: false}); } else { if (currentVal === 'done') toggleCompletionDirect(habitId, dateStr); else openTimerModal(habit); } } 
+    else { toggleCompletionDirect(habitId, dateStr); }
   };
 
-  const checkRestDayAndToggle = () => { if (isTryingToCompleteRestDay) { setTimeout(() => { showConfirm('¿Estás seguro de marcar/añadir progreso a un día de descanso?', executeSpecificAction, {title: 'Día Libre', okLabel: 'Continuar', danger: false}); }, 150); } else { executeSpecificAction(); } };
-  if (isModifyingPast) { showConfirm('¿Seguro que quieres modificar un día anterior del historial?', checkRestDayAndToggle, {title: 'Modificar Historial', okLabel: 'Modificar', danger: false}); } else { checkRestDayAndToggle(); }
+  const finalCheck = () => { if (isUncheckingToday) { setTimeout(() => { showConfirm('¿Estás seguro de desmarcar este hábito?', executeSpecificAction, {title: 'Desmarcar hábito', okLabel: 'Desmarcar', danger: true}); }, 150); } else if (isTryingToCompleteRestDay) { setTimeout(() => { showConfirm('¿Estás seguro de marcar/añadir progreso a un día de descanso?', executeSpecificAction, {title: 'Día Libre', okLabel: 'Continuar', danger: false}); }, 150); } else { executeSpecificAction(); } };
+  if (isModifyingPast) { showConfirm('¿Seguro que quieres modificar un día anterior del historial?', finalCheck, {title: 'Modificar Historial', okLabel: 'Modificar', danger: false}); } else { finalCheck(); }
 }
 
 function toggleCompletionDirect(habitId, dateStr) {
-  const habit = state.habits.find(h => h.id === habitId); const currentVal = habit.completions[dateStr];
-  let newlyChecked = false;
+  const habit = state.habits.find(h => h.id === habitId); const currentVal = habit.completions[dateStr]; let newlyChecked = false;
   if (isHabitDone(habit, currentVal)) { delete habit.completions[dateStr]; } else { habit.completions[dateStr] = 'done'; newlyChecked = true; }
-  saveState(); render();
-  if (newlyChecked && dateStr === getLocalDateStr(new Date())) checkAllDoneToday();
-  refreshDetailCalendar(habitId, dateStr);
+  saveState(); render(); if (newlyChecked && dateStr === getLocalDateStr(new Date())) checkAllDoneToday(); refreshDetailCalendar(habitId, dateStr);
 }
 
 function refreshDetailCalendar(habitId, dateStr) {
-  if (document.getElementById('detail-modal').classList.contains('active') && detailHabitId === habitId) {
-      renderDetailModal(); const habit = state.habits.find(h => h.id === habitId);
-      if (selectedNoteDate === dateStr) updateStatusButtons(isHabitDone(habit, habit.completions[dateStr]) ? 'done' : habit.completions[dateStr]);
-  }
+  if (document.getElementById('detail-modal').classList.contains('active') && detailHabitId === habitId) { renderDetailModal(); const habit = state.habits.find(h => h.id === habitId); if (selectedNoteDate === dateStr) updateStatusButtons(isHabitDone(habit, habit.completions[dateStr]) ? 'done' : habit.completions[dateStr]); }
 }
 
 function openNumericModal(habit) {
@@ -1053,116 +880,53 @@ function saveNumericProgress() {
   refreshDetailCalendar(habit.id, activeActionDateStr);
 }
 
-// ==== CONTROLES DEL TEMPORIZADOR ACTUALIZADOS ====
-function openTimerModal(habit) {
-  timerTotalSeconds = habit.duration * 60; timerSecondsLeft = timerTotalSeconds; isTimerRunning = false;
-  document.getElementById('timer-title').textContent = habit.name; updateTimerDisplay();
-  const playBtn = document.getElementById('timer-btn-play'); playBtn.innerHTML = '▶'; playBtn.classList.remove('danger'); playBtn.classList.add('play');
-  document.getElementById('timer-modal').classList.add('active');
-}
+function openTimerModal(habit) { timerTotalSeconds = habit.duration * 60; timerSecondsLeft = timerTotalSeconds; isTimerRunning = false; document.getElementById('timer-title').textContent = habit.name; updateTimerDisplay(); const playBtn = document.getElementById('timer-btn-play'); playBtn.innerHTML = '▶'; playBtn.classList.remove('danger'); playBtn.classList.add('play'); document.getElementById('timer-modal').classList.add('active'); }
+function closeTimerModal() { stopTimerInterval(); document.getElementById('timer-modal').classList.remove('active'); }
+function updateTimerDisplay() { const m = Math.floor(timerSecondsLeft / 60).toString().padStart(2, '0'); const s = (timerSecondsLeft % 60).toString().padStart(2, '0'); document.getElementById('timer-display').textContent = `${m}:${s}`; }
+function toggleTimerPlay() { const playBtn = document.getElementById('timer-btn-play'); if (isTimerRunning) { stopTimerInterval(); isTimerRunning = false; playBtn.innerHTML = '▶'; } else { isTimerRunning = true; lastTimerTick = Date.now(); playBtn.innerHTML = '⏸'; requestWakeLock(); timerWorker.postMessage('start'); } }
+function stopTimerInterval() { timerWorker.postMessage('stop'); releaseWakeLock(); }
+function stopTimer() { stopTimerInterval(); isTimerRunning = false; timerSecondsLeft = timerTotalSeconds; document.getElementById('timer-btn-play').innerHTML = '▶'; updateTimerDisplay(); }
+function completeTimerEarly() { closeTimerModal(); const habit = state.habits.find(h => h.id === activeActionHabitId); habit.completions[activeActionDateStr] = 'done'; saveState(); render(); if (activeActionDateStr === getLocalDateStr(new Date())) checkAllDoneToday(); refreshDetailCalendar(habit.id, activeActionDateStr); }
 
-function closeTimerModal() { 
-  stopTimerInterval(); 
-  document.getElementById('timer-modal').classList.remove('active'); 
+// --- Notas Rápidas ---
+function openQuickNoteModal(habitId) {
+  const todayStr = getLocalDateStr(new Date());
+  activeQnHabitId = habitId; activeQnDateStr = todayStr;
+  const habit = state.habits.find(h => h.id === habitId);
+  document.getElementById('qn-title').textContent = `${habit.emoji} Nota de hoy`;
+  document.getElementById('qn-input').value = (habit.notes && habit.notes[todayStr]) ? habit.notes[todayStr] : '';
+  document.getElementById('quick-note-modal').classList.add('active');
+  setTimeout(() => document.getElementById('qn-input').focus(), 50);
 }
-
-function updateTimerDisplay() { 
-  const m = Math.floor(timerSecondsLeft / 60).toString().padStart(2, '0'); 
-  const s = (timerSecondsLeft % 60).toString().padStart(2, '0'); 
-  document.getElementById('timer-display').textContent = `${m}:${s}`; 
+function closeQuickNoteModal() { document.getElementById('quick-note-modal').classList.remove('active'); activeQnHabitId = null; activeQnDateStr = null; }
+function saveQuickNote() {
+  if (!activeQnHabitId || !activeQnDateStr) return;
+  const habit = state.habits.find(h => h.id === activeQnHabitId);
+  const text = document.getElementById('qn-input').value.trim();
+  if (!habit.notes) habit.notes = {};
+  if (text === '') delete habit.notes[activeQnDateStr]; else habit.notes[activeQnDateStr] = text;
+  saveState(); render(); closeQuickNoteModal(); showToast("Nota guardada");
 }
-
-function toggleTimerPlay() {
-  const playBtn = document.getElementById('timer-btn-play');
-  if (isTimerRunning) { 
-    stopTimerInterval(); 
-    isTimerRunning = false; 
-    playBtn.innerHTML = '▶'; 
-  } else {
-    isTimerRunning = true; 
-    lastTimerTick = Date.now(); 
-    playBtn.innerHTML = '⏸';
-    requestWakeLock(); 
-    timerWorker.postMessage('start'); 
-  }
-}
-
-function stopTimerInterval() { 
-  timerWorker.postMessage('stop'); 
-  releaseWakeLock(); 
-}
-
-function stopTimer() { 
-  stopTimerInterval(); 
-  isTimerRunning = false; 
-  timerSecondsLeft = timerTotalSeconds; 
-  document.getElementById('timer-btn-play').innerHTML = '▶'; 
-  updateTimerDisplay(); 
-}
-
-function completeTimerEarly() {
-  closeTimerModal(); 
-  const habit = state.habits.find(h => h.id === activeActionHabitId); 
-  habit.completions[activeActionDateStr] = 'done';
-  saveState(); render(); 
-  if (activeActionDateStr === getLocalDateStr(new Date())) checkAllDoneToday(); 
-  refreshDetailCalendar(habit.id, activeActionDateStr);
-}
-
 
 function buildEmojiCatTabs() {
   const tabs = document.getElementById('emoji-cat-tabs'); tabs.innerHTML = '';
-  const allTab = document.createElement('button'); allTab.type = 'button';
-  allTab.className = 'emoji-cat-tab' + (activeEmojiCat === 'all' ? ' active' : ''); allTab.textContent = 'Todos';
-  allTab.onclick = () => { activeEmojiCat = 'all'; buildEmojiCatTabs(); buildEmojiGrid(); };
-  tabs.appendChild(allTab);
-  EMOJI_CATEGORIES.forEach(cat => {
-    const t = document.createElement('button'); t.type = 'button';
-    t.className = 'emoji-cat-tab' + (activeEmojiCat === cat.id ? ' active' : ''); t.textContent = cat.label;
-    t.onclick = () => { activeEmojiCat = cat.id; buildEmojiCatTabs(); buildEmojiGrid(); };
-    tabs.appendChild(t);
-  });
+  const allTab = document.createElement('button'); allTab.type = 'button'; allTab.className = 'emoji-cat-tab' + (activeEmojiCat === 'all' ? ' active' : ''); allTab.textContent = 'Todos'; allTab.onclick = () => { activeEmojiCat = 'all'; buildEmojiCatTabs(); buildEmojiGrid(); }; tabs.appendChild(allTab);
+  EMOJI_CATEGORIES.forEach(cat => { const t = document.createElement('button'); t.type = 'button'; t.className = 'emoji-cat-tab' + (activeEmojiCat === cat.id ? ' active' : ''); t.textContent = cat.label; t.onclick = () => { activeEmojiCat = cat.id; buildEmojiCatTabs(); buildEmojiGrid(); }; tabs.appendChild(t); });
 }
-
 function buildEmojiGrid() {
-  const grid = document.getElementById('emoji-grid'); grid.innerHTML = '';
-  const term = emojiSearchTerm.trim().toLowerCase();
-  let pool = [];
-  if (term) {
-    EMOJI_CATEGORIES.forEach(cat => pool.push(...cat.items));
-    pool = pool.filter(it => it.e === term || it.tags.some(tag => tag.includes(term)));
-  } else {
-    EMOJI_CATEGORIES.forEach(cat => { if (activeEmojiCat === 'all' || activeEmojiCat === cat.id) pool.push(...cat.items); });
-  }
+  const grid = document.getElementById('emoji-grid'); grid.innerHTML = ''; const term = emojiSearchTerm.trim().toLowerCase(); let pool = [];
+  if (term) { EMOJI_CATEGORIES.forEach(cat => pool.push(...cat.items)); pool = pool.filter(it => it.e === term || it.tags.some(tag => tag.includes(term))); } else { EMOJI_CATEGORIES.forEach(cat => { if (activeEmojiCat === 'all' || activeEmojiCat === cat.id) pool.push(...cat.items); }); }
   if (pool.length === 0) { grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); font-size:13px; padding:16px 0;">Sin resultados</div>`; return; }
-  pool.forEach(it => {
-    const opt = document.createElement('div'); opt.className = 'emoji-opt' + (it.e === selectedEmoji ? ' selected' : ''); opt.textContent = it.e;
-    opt.onclick = () => { selectedEmoji = it.e; buildEmojiGrid(); };
-    grid.appendChild(opt);
-  });
+  pool.forEach(it => { const opt = document.createElement('div'); opt.className = 'emoji-opt' + (it.e === selectedEmoji ? ' selected' : ''); opt.textContent = it.e; opt.onclick = () => { selectedEmoji = it.e; buildEmojiGrid(); }; grid.appendChild(opt); });
 }
 function bindFreqEvents() { document.querySelectorAll('.freq-day').forEach(el => { el.onclick = () => { const day = parseInt(el.dataset.day); if (selectedFreq.includes(day)) { if (selectedFreq.length > 1) selectedFreq = selectedFreq.filter(d => d !== day); } else { selectedFreq.push(day); } updateFreqUI(); }; }); }
 function updateFreqUI() { document.querySelectorAll('.freq-day').forEach(el => { if (selectedFreq.includes(parseInt(el.dataset.day))) el.classList.add('selected'); else el.classList.remove('selected'); }); }
 
 function selectHabitType(type) {
   selectedType = type;
-  ['boolean', 'numeric', 'timer'].forEach(t => {
-      const btn = document.getElementById(`type-${t}`);
-      btn.classList.remove('active'); btn.classList.add('none'); btn.style.borderColor = 'var(--border)'; btn.style.color = 'var(--text-muted)';
-  });
-  const activeBtn = document.getElementById(`type-${type}`);
-  activeBtn.classList.add('active'); activeBtn.classList.remove('none'); activeBtn.style.borderColor = 'var(--accent)'; activeBtn.style.color = 'var(--text)';
+  ['boolean', 'numeric', 'timer'].forEach(t => { const btn = document.getElementById(`type-${t}`); btn.classList.remove('active'); btn.classList.add('none'); btn.style.borderColor = 'var(--border)'; btn.style.color = 'var(--text-muted)'; });
+  const activeBtn = document.getElementById(`type-${type}`); activeBtn.classList.add('active'); activeBtn.classList.remove('none'); activeBtn.style.borderColor = 'var(--accent)'; activeBtn.style.color = 'var(--text)';
   document.getElementById('fields-numeric').style.display = type === 'numeric' ? 'block' : 'none'; document.getElementById('fields-timer').style.display = type === 'timer' ? 'block' : 'none';
-}
-
-function selectTimeOfDay(tod) {
-  selectedTimeOfDay = tod;
-  ['morning', 'afternoon', 'evening', 'any'].forEach(t => {
-      const btn = document.getElementById(`tod-${t}`);
-      if(btn) { btn.classList.remove('active'); btn.classList.add('none'); btn.style.borderColor = 'var(--border)'; btn.style.color = 'var(--text-muted)'; }
-  });
-  const activeBtn = document.getElementById(`tod-${tod}`);
-  if(activeBtn) { activeBtn.classList.add('active'); activeBtn.classList.remove('none'); activeBtn.style.borderColor = 'var(--accent)'; activeBtn.style.color = 'var(--text)'; }
 }
 
 function openHabitModal(habitId = null) {
@@ -1173,11 +937,7 @@ function openHabitModal(habitId = null) {
   
   document.getElementById('habit-delete-btn').style.display = habit ? 'block' : 'none';
   document.getElementById('habit-archive-btn').style.display = habit ? 'block' : 'none';
-  
-  if (habit) {
-    document.getElementById('habit-archive-btn').innerHTML = habit.archived ? '📤' : '📦';
-    document.getElementById('habit-archive-btn').title = habit.archived ? 'Desarchivar' : 'Archivar';
-  }
+  if (habit) { document.getElementById('habit-archive-btn').innerHTML = habit.archived ? '📤' : '📦'; document.getElementById('habit-archive-btn').title = habit.archived ? 'Desarchivar' : 'Archivar'; }
   
   selectedEmoji = habit ? habit.emoji : EMOJI_CATEGORIES[0].items[0].e;
   selectedFreq = habit ? [...habit.frequency] : [0,1,2,3,4,5,6];
@@ -1185,72 +945,36 @@ function openHabitModal(habitId = null) {
   document.getElementById('habit-target').value = habit && habit.type === 'numeric' ? habit.target : '';
   document.getElementById('habit-unit').value = habit && habit.type === 'numeric' ? (habit.unit || '') : '';
   document.getElementById('habit-duration').value = habit && habit.type === 'timer' ? habit.duration : '';
+  document.getElementById('habit-routine').value = habit ? (habit.routine || 'General') : 'General';
   
   selectHabitType(habit ? habit.type : 'boolean');
-  selectTimeOfDay(habit && habit.timeOfDay ? habit.timeOfDay : 'any');
-  
   emojiSearchTerm = ''; document.getElementById('emoji-search').value = ''; activeEmojiCat = 'all';
   buildEmojiCatTabs(); buildEmojiGrid(); bindFreqEvents(); updateFreqUI();
-  document.getElementById('habit-modal').classList.add('active');
-  setTimeout(() => document.getElementById('habit-name-input').focus(), 50);
+  document.getElementById('habit-modal').classList.add('active'); setTimeout(() => document.getElementById('habit-name-input').focus(), 50);
 }
-
 function closeHabitModal() { document.getElementById('habit-modal').classList.remove('active'); editingHabitId = null; }
 
 function saveHabitFromModal() {
   const name = document.getElementById('habit-name-input').value.trim(); if (!name) { flagInvalidField('habit-name-input', 'Ponle un nombre a tu hábito.'); return; }
-  
   let target = null, unit = null, duration = null;
-  if (selectedType === 'numeric') {
-    target = parseFloat(document.getElementById('habit-target').value); if (!target || target <= 0) { flagInvalidField('habit-target', 'Introduce un objetivo numérico válido.'); return; }
-    unit = document.getElementById('habit-unit').value.trim();
-  } else if (selectedType === 'timer') {
-    duration = parseInt(document.getElementById('habit-duration').value); if (!duration || duration <= 0) { flagInvalidField('habit-duration', 'Introduce un tiempo válido en minutos.'); return; }
-  }
+  if (selectedType === 'numeric') { target = parseFloat(document.getElementById('habit-target').value); if (!target || target <= 0) { flagInvalidField('habit-target', 'Introduce un objetivo numérico válido.'); return; } unit = document.getElementById('habit-unit').value.trim(); } 
+  else if (selectedType === 'timer') { duration = parseInt(document.getElementById('habit-duration').value); if (!duration || duration <= 0) { flagInvalidField('habit-duration', 'Introduce un tiempo válido en minutos.'); return; } }
   
-  if (editingHabitId) {
-    const habit = state.habits.find(h => h.id === editingHabitId);
-    if (habit) { habit.name = name; habit.emoji = selectedEmoji; habit.frequency = [...selectedFreq]; habit.type = selectedType; habit.target = target; habit.unit = unit; habit.duration = duration; habit.timeOfDay = selectedTimeOfDay; }
-  } else {
-    state.habits.push({ id: uid(), name, emoji: selectedEmoji, frequency: [...selectedFreq], type: selectedType, target, unit, duration, timeOfDay: selectedTimeOfDay, archived: false, createdAt: getLocalDateStr(new Date()), completions: {}, notes: {} });
-  }
+  let routine = document.getElementById('habit-routine').value.trim();
+  if (!routine) routine = 'General';
+
+  if (editingHabitId) { const habit = state.habits.find(h => h.id === editingHabitId); if (habit) { habit.name = name; habit.emoji = selectedEmoji; habit.frequency = [...selectedFreq]; habit.type = selectedType; habit.target = target; habit.unit = unit; habit.duration = duration; habit.routine = routine; } } 
+  else { state.habits.push({ id: uid(), name, emoji: selectedEmoji, frequency: [...selectedFreq], type: selectedType, target, unit, duration, routine: routine, archived: false, createdAt: getLocalDateStr(new Date()), completions: {}, notes: {} }); }
   saveState(); render(); closeHabitModal();
 }
 
-function deleteHabitFromModal() {
-  const habit = state.habits.find(h => h.id === editingHabitId); if (!habit) return;
-  closeHabitModal();
-  deleteHabitDirect(habit.id);
-}
-
+function deleteHabitFromModal() { const habit = state.habits.find(h => h.id === editingHabitId); if (!habit) return; closeHabitModal(); deleteHabitDirect(habit.id); }
 function deleteHabitDirect(habitId) {
   const idx = state.habits.findIndex(h => h.id === habitId); if (idx === -1) return;
-  
-  animateRemoval(habitId, () => {
-    const [removedHabit] = state.habits.splice(idx, 1);
-    saveState(); render();
-    if (navigator.vibrate) navigator.vibrate([12, 30, 12]);
-    showToast(`"${removedHabit.name}" eliminado`, 4500, 'Deshacer', () => {
-      const restoreIdx = Math.min(idx, state.habits.length);
-      state.habits.splice(restoreIdx, 0, removedHabit);
-      saveState(); render();
-      showToast('Hábito restaurado');
-    });
-  });
+  animateRemoval(habitId, () => { const [removedHabit] = state.habits.splice(idx, 1); saveState(); render(); if (navigator.vibrate) navigator.vibrate([12, 30, 12]); showToast(`"${removedHabit.name}" eliminado`, 4500, 'Deshacer', () => { const restoreIdx = Math.min(idx, state.habits.length); state.habits.splice(restoreIdx, 0, removedHabit); saveState(); render(); showToast('Hábito restaurado'); }); });
 }
+function toggleArchiveHabitFromModal() { const habit = state.habits.find(h => h.id === editingHabitId); if (!habit) return; const action = habit.archived ? 'desarchivar' : 'archivar'; showConfirm(`¿Quieres ${action} el hábito "${habit.name}"?`, () => { animateRemoval(habit.id, () => { habit.archived = !habit.archived; saveState(); render(); closeHabitModal(); }); }, { title: habit.archived ? 'Desarchivar' : 'Archivar', okLabel: 'Aceptar', danger: false }); }
 
-function toggleArchiveHabitFromModal() {
-  const habit = state.habits.find(h => h.id === editingHabitId); if (!habit) return;
-  const action = habit.archived ? 'desarchivar' : 'archivar';
-  showConfirm(`¿Quieres ${action} el hábito "${habit.name}"?`, () => {
-      animateRemoval(habit.id, () => {
-        habit.archived = !habit.archived;
-        saveState(); render(); closeHabitModal();
-      });
-  }, { title: habit.archived ? 'Desarchivar' : 'Archivar', okLabel: 'Aceptar', danger: false });
-}
-
-// ==== MODAL: DETALLE ====
 function openDetailModal(habitId) { detailHabitId = habitId; detailCalendarDate = new Date(); selectedNoteDate = null; document.getElementById('note-section').classList.remove('active'); document.getElementById('detail-modal').classList.add('active'); renderDetailModal(); }
 function closeDetailModal() { document.getElementById('detail-modal').classList.remove('active'); detailHabitId = null; }
 function changeDetailMonth(dir) { detailCalendarDate.setMonth(detailCalendarDate.getMonth() + dir); renderDetailModal(); }
@@ -1262,75 +986,43 @@ function selectNoteDate(dateStr) {
   updateStatusButtons(isHabitDone(habit, habit.completions[dateStr]) ? 'done' : habit.completions[dateStr]);
   document.getElementById('note-section').classList.add('active'); renderDetailModal(); 
 }
-
-function updateStatusButtons(status) {
-  document.getElementById('status-none').className = 'status-btn none' + (!status || (typeof status==='number' && status>0) ? ' active' : '');
-  document.getElementById('status-skip').className = 'status-btn skip' + (status === 'skip' ? ' active' : '');
-  document.getElementById('status-done').className = 'status-btn done' + (status === 'done' ? ' active' : '');
-}
-
+function updateStatusButtons(status) { document.getElementById('status-none').className = 'status-btn none' + (!status || (typeof status==='number' && status>0) ? ' active' : ''); document.getElementById('status-skip').className = 'status-btn skip' + (status === 'skip' ? ' active' : ''); document.getElementById('status-done').className = 'status-btn done' + (status === 'done' ? ' active' : ''); }
 function setDayStatus(newStatus) {
   if (!detailHabitId || !selectedNoteDate) return;
   const habit = state.habits.find(h => h.id === detailHabitId); const currentVal = habit.completions[selectedNoteDate];
-  if (newStatus === 'done' && isHabitDone(habit, currentVal)) return; 
-  if (newStatus === currentVal) return;
-
+  if (newStatus === 'done' && isHabitDone(habit, currentVal)) return; if (newStatus === currentVal) return;
   const dow = new Date(selectedNoteDate + 'T00:00:00').getDay(); const isTryingToCompleteRestDay = newStatus === 'done' && !habit.frequency.includes(dow);
-
   const executeChange = () => { if (!newStatus) delete habit.completions[selectedNoteDate]; else habit.completions[selectedNoteDate] = newStatus; updateStatusButtons(newStatus); saveState(); renderDetailModal(); render(); };
   if (isTryingToCompleteRestDay) { showConfirm('¿Estás seguro de marcar como completado un día de descanso?', executeChange, {title: 'Día Libre', okLabel: 'Completar', danger: false}); } else { executeChange(); }
 }
-
 function saveNote() {
   if (!detailHabitId || !selectedNoteDate) return;
   const habit = state.habits.find(h => h.id === detailHabitId); const text = document.getElementById('habit-note-input').value.trim();
   if (!habit.notes) habit.notes = {};
   if (text === '') delete habit.notes[selectedNoteDate]; else habit.notes[selectedNoteDate] = text;
-  saveState(); renderDetailModal(); showToast("Nota guardada");
+  saveState(); renderDetailModal(); render(); showToast("Nota guardada");
 }
 
 function renderDetailModal() {
   const habit = state.habits.find(h => h.id === detailHabitId); if (!habit) return;
-  document.getElementById('detail-title').textContent = `${habit.emoji} ${habit.name}`;
-  document.getElementById('detail-current').textContent = getStreak(habit);
-  document.getElementById('detail-best').textContent = getBestStreak(habit);
-  document.getElementById('detail-rate').textContent = getCompletionRate(habit) + '%';
-  const year = detailCalendarDate.getFullYear(); const month = detailCalendarDate.getMonth();
-  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('detail-title').textContent = `${habit.emoji} ${habit.name}`; document.getElementById('detail-current').textContent = getStreak(habit); document.getElementById('detail-best').textContent = getBestStreak(habit); document.getElementById('detail-rate').textContent = getCompletionRate(habit) + '%';
+  const year = detailCalendarDate.getFullYear(); const month = detailCalendarDate.getMonth(); const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   document.getElementById('detail-cal-title').textContent = `${monthNames[month]} ${year}`;
-  const firstDay = new Date(year, month, 1); const lastDay = new Date(year, month + 1, 0);
-  const startDow = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-  const todayStr = getLocalDateStr(new Date());
-
-  const cal = document.getElementById('detail-calendar');
-  cal.innerHTML = ['L','M','X','J','V','S','D'].map(d => `<div class="cal-day-label">${d}</div>`).join('');
+  const firstDay = new Date(year, month, 1); const lastDay = new Date(year, month + 1, 0); const startDow = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; const todayStr = getLocalDateStr(new Date());
+  const cal = document.getElementById('detail-calendar'); cal.innerHTML = ['L','M','X','J','V','S','D'].map(d => `<div class="cal-day-label">${d}</div>`).join('');
   for (let i = 0; i < startDow; i++) cal.innerHTML += `<div></div>`;
-  
   for (let d = 1; d <= lastDay.getDate(); d++) {
-    const ds = getLocalDateStr(new Date(year, month, d)); const val = habit.completions[ds];
-    const isToday = ds === todayStr; const isFuture = ds > todayStr;
-    const isRequired = habit.frequency.includes(new Date(ds + 'T00:00:00').getDay());
-    const hasNote = habit.notes && habit.notes[ds] && habit.notes[ds].trim() !== ''; const isSelected = ds === selectedNoteDate;
-
-    let classes = 'cal-day';
-    if (isHabitDone(habit, val)) classes += ' done'; else if (val === 'skip') classes += ' skip'; else if (!isRequired && !isFuture) classes += ' rest';
+    const ds = getLocalDateStr(new Date(year, month, d)); const val = habit.completions[ds]; const isToday = ds === todayStr; const isFuture = ds > todayStr; const isRequired = habit.frequency.includes(new Date(ds + 'T00:00:00').getDay()); const hasNote = habit.notes && habit.notes[ds] && habit.notes[ds].trim() !== ''; const isSelected = ds === selectedNoteDate;
+    let classes = 'cal-day'; if (isHabitDone(habit, val)) classes += ' done'; else if (val === 'skip') classes += ' skip'; else if (!isRequired && !isFuture) classes += ' rest';
     if (isToday) classes += ' today'; if (hasNote) classes += ' has-note'; if (isSelected) classes += ' selected';
-
-    let badge = '';
-    if (val === 'skip') { badge = `<span style="position:absolute; top:2px; right:4px; font-size:9px;">⏸</span>`; } 
-    else if (!isRequired && !isFuture && !isHabitDone(habit, val)) { badge = `<span style="position:absolute; top:2px; right:4px; font-size:9px; color:var(--text-muted); font-weight:bold;">zz</span>`; }
-
+    let badge = ''; if (val === 'skip') { badge = `<span style="position:absolute; top:2px; right:4px; font-size:9px;">⏸</span>`; } else if (!isRequired && !isFuture && !isHabitDone(habit, val)) { badge = `<span style="position:absolute; top:2px; right:4px; font-size:9px; color:var(--text-muted); font-weight:bold;">zz</span>`; }
     const dayDiv = document.createElement('div'); dayDiv.className = classes; dayDiv.innerHTML = `${d}${badge}`;
     if (!isFuture) dayDiv.onclick = () => selectNoteDate(ds); else { dayDiv.style.opacity = '0.3'; dayDiv.style.cursor = 'default'; }
     cal.appendChild(dayDiv);
   }
 }
-document.addEventListener('touchstart', (e) => {
-  if (openSwipeWrap && !openSwipeWrap.contains(e.target)) closeOpenSwipe();
-}, { passive: true });
-document.addEventListener('click', (e) => {
-  if (openSwipeWrap && !openSwipeWrap.contains(e.target)) closeOpenSwipe();
-});
+document.addEventListener('touchstart', (e) => { if (openSwipeWrap && !openSwipeWrap.contains(e.target)) closeOpenSwipe(); }, { passive: true });
+document.addEventListener('click', (e) => { if (openSwipeWrap && !openSwipeWrap.contains(e.target)) closeOpenSwipe(); });
 initTheme(); loadState();
 </script>
 </body>
